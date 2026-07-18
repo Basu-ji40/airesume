@@ -1,6 +1,6 @@
 import os
 
-import psycopg2
+import psycopg2 
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extras import RealDictCursor
