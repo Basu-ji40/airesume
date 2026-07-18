@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <!-- Chart.js powers every chart on this page -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --sidebar-bg: #0d1b2a;
+            --sidebar-hover: #1d3557;
+            --main-bg: #f5f7fb;
+            --brand-blue: #0d5cd7;
+            --brand-blue-dark: #0a3fa0;
+            --brand-blue-soft: #eaf1ff;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+            background: var(--main-bg);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        #sidebar {
+            background: var(--sidebar-bg);
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            transition: all .3s ease;
+            z-index: 1030;
+            overflow-y: auto;
+        }
+
+        #sidebar.collapsed {
+            width: 80px;
+            overflow-x: hidden;
+        }
+
+        #sidebar .brand {
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.2rem;
+            padding: 1.2rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #sidebar .nav-link {
+            color: #c9d3e0;
+            padding: .75rem 1.2rem;
+            border-radius: 8px;
+            margin: .15rem .7rem;
+            transition: all .2s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+            text-decoration: none;
+        }
+
+        #sidebar .nav-link i {
+            width: 22px;
+            text-align: center;
+            margin-right: 10px;
+            font-size: 1.05rem;
+        }
+
+        #sidebar .nav-link:hover,
+        #sidebar .nav-link.active {
+            background: var(--sidebar-hover);
+            color: #fff;
+        }
+
+        #sidebar.collapsed .link-text {
+            display: none;
+        }
+
+        #main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+            transition: all .3s ease;
+        }
+
+        #main-content.expanded {
+            margin-left: 80px;
+        }
+
+        .top-navbar {
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+            padding: .75rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .notif-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .35);
+            z-index: 1020;
+            opacity: 0;
+            visibility: hidden;
+            transition: all .2s ease;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        body.sidebar-open {
+            overflow: hidden;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .05);
+            background: #fff;
+        }
+
+        @media (max-width:991.98px) {
+            #sidebar {
+                left: -250px;
+            }
+
+            #sidebar.show {
+                left: 0;
+            }
+
+            #main-content {
+                margin-left: 0;
+            }
+
+            .top-navbar {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+
+        /* ============================================================
+           Analytics page specific styling
+           ============================================================ */
+        .text-brand { color: var(--brand-blue) !important; }
+        .bg-brand { background-color: var(--brand-blue) !important; }
+        .bg-brand-soft { background-color: var(--brand-blue-soft) !important; }
+        .shadow-soft { box-shadow: 0 4px 18px rgba(13,92,215,0.06); }
+
+        .kpi-icon {
+            width: 46px; height: 46px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+        }
+        .kpi-trend { font-size: .75rem; font-weight: 600; }
+
+        .chart-box { position: relative; width: 100%; }
+        .chart-box.h-220 { height: 220px; }
+        .chart-box.h-260 { height: 260px; }
+        .chart-box.h-300 { height: 300px; }
+
+        .gauge-wrap { position: relative; width: 160px; height: 160px; margin: 0 auto; }
+        .gauge-value {
+            position: absolute; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .gauge-value .num { font-size: 1.6rem; font-weight: 800; color: var(--brand-blue-dark); }
+        .gauge-value .lbl { font-size: .7rem; color: #7c8aa0; text-transform: uppercase; letter-spacing: .04em; }
+
+        .section-title {
+            font-size: .78rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .06em; color: #7c8aa0; margin: 1.75rem 0 .75rem;
+        }
+
+        /* CSS-only recruitment funnel */
+        .funnel-stage {
+            position: relative;
+            margin: 0 auto 6px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: .8rem;
+            font-weight: 600;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media (max-width:767.98px) {
+            .table-responsive { font-size: .85rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div id="sidebar">
+        <div class="brand"><span class="link-text d-flex align-items-center"><img
+                    src="{{ url_for('static', filename='images/logo2.png') }}" alt="Logo" width="48" height="48"
+                    class="me-2 rounded-circle" />HYRIZON</span></div>
+        <ul class="nav flex-column mt-2">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i
+                        class="bi bi-speedometer2"></i><span class="link-text">Dashboard</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('resume') }}"><i
+                        class="bi bi-file-earmark-text"></i><span class="link-text">Upload Resume</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('job') }}"><i class="bi bi-briefcase"></i><span
+                        class="link-text">Job Listing</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('candidates') }}"><i
+                        class="bi bi-people"></i><span class="link-text">Candidates</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('analysis') }}"><i class="bi bi-cpu"></i><span
+                        class="link-text">Resume Analysis</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('interview') }}"><i
+                        class="bi bi-bullseye"></i><span class="link-text">Interview Recommendation</span></a></li>
+            <li class="nav-item"><a class="nav-link active" href="{{ url_for('analytics') }}"><i
+                        class="bi bi-bar-chart"></i><span class="link-text">Analytics</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('reports') }}"><i
+                        class="bi bi-folder2-open"></i><span class="link-text">Reports</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('settings') }}"><i class="bi bi-gear"></i><span
+                        class="link-text">Settings</span></a></li>
+        </ul>
+    </div>
+
+    <div id="main-content">
+        <nav class="top-navbar navbar navbar-light bg-white shadow-sm px-3">
+            <div class="d-flex align-items-center"><button class="btn btn-outline-secondary me-3" id="toggleSidebar"
+                    type="button"><i class="bi bi-list fs-4"></i></button>
+                <div class="input-group" style="width:250px;"><span class="input-group-text bg-white"><i
+                            class="bi bi-search"></i></span><input type="text" class="form-control"
+                        placeholder="Search analytics..." /></div>
+            </div>
+            <div class="d-flex align-items-center gap-4">
+                <div class="position-relative"><i class="bi bi-bell fs-5"></i><span class="notif-dot"></span></div>
+                <div class="dropdown"><a class="d-flex align-items-center text-decoration-none dropdown-toggle" href="#"
+                        data-bs-toggle="dropdown"><img src="{{ url_for('static', filename='images/port.JPG') }}"
+                            class="rounded-circle me-2" width="36" height="36" alt="profile" /><span
+                            class="text-dark fw-semibold">Admin</span></a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#">Profile</a></li>
+                        <li><a class="dropdown-item" href="#">Settings</a></li>
+                        <li>
+                            <hr class="dropdown-divider" />
+                        </li>
+                        <li><a class="dropdown-item" href="#">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- ======================================================
+             ANALYTICS PAGE CONTENT
+        ====================================================== -->
+        <div class="p-4">
+
+            <!-- PAGE HEADER -->
+            <div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">Analytics</h3>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none text-muted">Dashboard</a></li>
+                            <li class="breadcrumb-item active fw-semibold text-brand" aria-current="page">Analytics</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <select class="form-select form-select-sm" style="width:auto;">
+                        <option selected>Last 6 Months</option>
+                        <option>Last 30 Days</option>
+                        <option>Last Quarter</option>
+                        <option>This Year</option>
+                    </select>
+                    <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                    <button class="btn btn-primary bg-brand border-0 btn-sm"><i class="bi bi-download me-1"></i>Export Report</button>
+                </div>
+            </div>
+
+            <!-- ======================================================
+                 KPI CARDS
+            ====================================================== -->
+            <div class="row g-3 mb-2">
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-body">
+                            <div class="kpi-icon bg-brand-soft text-brand mb-2"><i class="bi bi-person-check-fill"></i></div>
+                            <h4 class="fw-bold mb-0">142</h4>
+                            <div class="text-muted small">Total Hires (6 mo.)</div>
+                            <div class="kpi-trend text-success mt-1"><i class="bi bi-arrow-up-short"></i>9% vs prior period</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-body">
+                            <div class="kpi-icon bg-success bg-opacity-10 text-success mb-2"><i class="bi bi-graph-up-arrow"></i></div>
+                            <h4 class="fw-bold mb-0">57.8%</h4>
+                            <div class="text-muted small">Hiring Success Rate</div>
+                            <div class="kpi-trend text-success mt-1"><i class="bi bi-arrow-up-short"></i>3.2 pts</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-body">
+                            <div class="kpi-icon bg-info bg-opacity-10 text-info mb-2"><i class="bi bi-clock-history"></i></div>
+                            <h4 class="fw-bold mb-0">18.4 days</h4>
+                            <div class="text-muted small">Avg. Recruitment Time</div>
+                            <div class="kpi-trend text-success mt-1"><i class="bi bi-arrow-down-short"></i>2.1 days faster</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-body">
+                            <div class="kpi-icon bg-primary bg-opacity-10 text-primary mb-2"><i class="bi bi-cpu-fill"></i></div>
+                            <h4 class="fw-bold mb-0">91.2%</h4>
+                            <div class="text-muted small">Resume Screening Accuracy</div>
+                            <div class="kpi-trend text-success mt-1"><i class="bi bi-arrow-up-short"></i>1.4 pts</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-body">
+                            <div class="kpi-icon bg-warning bg-opacity-10 text-warning mb-2"><i class="bi bi-people-fill"></i></div>
+                            <h4 class="fw-bold mb-0">34.6%</h4>
+                            <div class="text-muted small">Interview Conversion Rate</div>
+                            <div class="kpi-trend text-danger mt-1"><i class="bi bi-arrow-down-short"></i>1.8 pts</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-body">
+                            <div class="kpi-icon bg-danger bg-opacity-10 text-danger mb-2"><i class="bi bi-envelope-check-fill"></i></div>
+                            <h4 class="fw-bold mb-0">78.9%</h4>
+                            <div class="text-muted small">Offer Acceptance Rate</div>
+                            <div class="kpi-trend text-success mt-1"><i class="bi bi-arrow-up-short"></i>4.5 pts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================
+                 MONTHLY RECRUITMENT TRENDS + RECRUITMENT FUNNEL
+            ====================================================== -->
+            <div class="section-title">Recruitment Trends &amp; Funnel</div>
+            <div class="row g-4">
+                <div class="col-xl-8">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-header bg-white border-0 pt-3">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-graph-up me-2 text-brand"></i>Monthly Recruitment Trends</h6>
+                            <div class="text-muted small">Applications, interviews, and hires over the last 6 months</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-box h-300"><canvas id="chartMonthlyTrends"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-header bg-white border-0 pt-3">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-filter-circle me-2 text-brand"></i>Recruitment Funnel</h6>
+                            <div class="text-muted small">Candidate drop-off by stage</div>
+                        </div>
+                        <div class="card-body" id="funnelWrap">
+                            <!-- Funnel stages are rendered by JS below -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================
+                 PERFORMANCE GAUGES
+            ====================================================== -->
+            <div class="section-title">Performance Indicators</div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-body text-center">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-check2-circle me-2 text-brand"></i>Hiring Success Rate</h6>
+                            <div class="gauge-wrap">
+                                <canvas id="gaugeHiringSuccess"></canvas>
+                                <div class="gauge-value"><span class="num">57.8%</span><span class="lbl">Success</span></div>
+                            </div>
+                            <p class="text-muted small mt-3 mb-0">Share of applicants who reach an accepted offer</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-body text-center">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-cpu me-2 text-brand"></i>Resume Screening Accuracy</h6>
+                            <div class="gauge-wrap">
+                                <canvas id="gaugeScreeningAccuracy"></canvas>
+                                <div class="gauge-value"><span class="num">91.2%</span><span class="lbl">Accuracy</span></div>
+                            </div>
+                            <p class="text-muted small mt-3 mb-0">AI screening decisions matching HR review outcomes</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-body text-center">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-arrow-repeat me-2 text-brand"></i>Interview Conversion Rate</h6>
+                            <div class="gauge-wrap">
+                                <canvas id="gaugeInterviewConversion"></canvas>
+                                <div class="gauge-value"><span class="num">34.6%</span><span class="lbl">Conversion</span></div>
+                            </div>
+                            <p class="text-muted small mt-3 mb-0">Interviewed candidates who receive an offer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================
+                 RESUME SCORE & JOB POSITION ANALYTICS
+            ====================================================== -->
+            <div class="section-title">Screening &amp; Position Insights</div>
+            <div class="row g-4">
+                <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-header bg-white border-0 pt-3"><h6 class="fw-bold mb-0"><i class="bi bi-bar-chart-steps me-2 text-brand"></i>AI Resume Score Distribution</h6></div>
+                        <div class="card-body"><div class="chart-box h-260"><canvas id="chartScoreDistribution"></canvas></div></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-header bg-white border-0 pt-3"><h6 class="fw-bold mb-0"><i class="bi bi-briefcase me-2 text-brand"></i>Job Position Analytics</h6></div>
+                        <div class="card-body"><div class="chart-box h-260"><canvas id="chartJobPosition"></canvas></div></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-header bg-white border-0 pt-3"><h6 class="fw-bold mb-0"><i class="bi bi-stars me-2 text-brand"></i>Skills in Demand</h6></div>
+                        <div class="card-body"><div class="chart-box h-260"><canvas id="chartSkillsDemand"></canvas></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================
+                 CANDIDATE PROFILE ANALYTICS
+            ====================================================== -->
+            <div class="section-title">Candidate Profile Breakdown</div>
+            <div class="row g-4">
+                <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-header bg-white border-0 pt-3"><h6 class="fw-bold mb-0"><i class="bi bi-person-badge me-2 text-brand"></i>Experience Distribution</h6></div>
+                        <div class="card-body"><div class="chart-box h-260"><canvas id="chartExperienceDist"></canvas></div></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-header bg-white border-0 pt-3"><h6 class="fw-bold mb-0"><i class="bi bi-mortarboard me-2 text-brand"></i>Education Distribution</h6></div>
+                        <div class="card-body"><div class="chart-box h-260"><canvas id="chartEducationDist"></canvas></div></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-header bg-white border-0 pt-3"><h6 class="fw-bold mb-0"><i class="bi bi-x-octagon me-2 text-brand"></i>Rejection Reasons</h6></div>
+                        <div class="card-body"><div class="chart-box h-260"><canvas id="chartRejectionReasons"></canvas></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================
+                 DEPARTMENT, TIME-TO-HIRE & SOURCING
+            ====================================================== -->
+            <div class="section-title">Departments, Timing &amp; Sourcing</div>
+            <div class="row g-4">
+                <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-header bg-white border-0 pt-3"><h6 class="fw-bold mb-0"><i class="bi bi-diagram-3 me-2 text-brand"></i>Department-wise Hiring</h6></div>
+                        <div class="card-body"><div class="chart-box h-260"><canvas id="chartDeptHiring"></canvas></div></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-header bg-white border-0 pt-3"><h6 class="fw-bold mb-0"><i class="bi bi-stopwatch me-2 text-brand"></i>Avg. Recruitment Time by Department</h6></div>
+                        <div class="card-body"><div class="chart-box h-260"><canvas id="chartRecruitmentTime"></canvas></div></div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-soft h-100">
+                        <div class="card-header bg-white border-0 pt-3"><h6 class="fw-bold mb-0"><i class="bi bi-signpost-split me-2 text-brand"></i>Top Recruiting Sources</h6></div>
+                        <div class="card-body"><div class="chart-box h-260"><canvas id="chartRecruitingSources"></canvas></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center small text-muted border-top pt-3 mt-4">
+                <div>Analytics generated from <b>820</b> applications across <b>6</b> months</div>
+                <div>System Version <span class="badge bg-brand-soft text-brand">v1.2.0</span></div>
+                <div>&copy; 2026 HYRIZON — AI Resume Screening &amp; Interview Recommendation System</div>
+            </div>
+
+        </div>
+        <!-- ===================== END ANALYTICS PAGE CONTENT ===================== -->
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ================================================================
+        // Sidebar toggle / collapse behavior (same shell as other pages)
+        // ================================================================
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const toggleSidebarButton = document.getElementById('toggleSidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const sidebarStateKey = 'hyrizon-sidebar-state';
+        function closeMobileSidebar() { sidebar.classList.remove('show'); sidebarOverlay.classList.remove('show'); document.body.classList.remove('sidebar-open'); }
+        function openMobileSidebar() { sidebar.classList.add('show'); sidebarOverlay.classList.add('show'); document.body.classList.add('sidebar-open'); }
+        function setDesktopSidebarState(isCollapsed) { sidebar.classList.toggle('collapsed', isCollapsed); mainContent.classList.toggle('expanded', isCollapsed); toggleSidebarButton.setAttribute('aria-expanded', String(!isCollapsed)); localStorage.setItem(sidebarStateKey, isCollapsed ? 'collapsed' : 'expanded'); }
+        function applySavedSidebarState() { const saved = localStorage.getItem(sidebarStateKey); if (window.innerWidth >= 992) setDesktopSidebarState(saved === 'collapsed'); }
+        function handleSidebarToggle() { if (window.innerWidth >= 992) { const isCollapsed = !sidebar.classList.contains('collapsed'); setDesktopSidebarState(isCollapsed); } else { if (sidebar.classList.contains('show')) closeMobileSidebar(); else openMobileSidebar(); } }
+        toggleSidebarButton?.addEventListener('click', handleSidebarToggle);
+        sidebarOverlay?.addEventListener('click', closeMobileSidebar);
+        window.addEventListener('resize', function () { if (window.innerWidth >= 992) { sidebar.classList.remove('show'); sidebarOverlay.classList.remove('show'); document.body.classList.remove('sidebar-open'); applySavedSidebarState(); } else { sidebar.classList.remove('collapsed'); mainContent.classList.remove('expanded'); toggleSidebarButton.setAttribute('aria-expanded', 'false'); } });
+        applySavedSidebarState();
+        if (window.innerWidth < 992) closeMobileSidebar();
+
+        // ================================================================
+        // Chart.js — Analytics page
+        // All datasets below are SAMPLE DATA. Replace with values passed
+        // from Flask (e.g. {{ monthly_trends | tojson }}) when wiring up
+        // the backend.
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const brand = '#0d5cd7';
+            const brandDark = '#0a3fa0';
+            const palette = ['#0d5cd7', '#3f8efc', '#7fb2ff', '#a9c9ff', '#0a3fa0', '#c9dcff', '#5b8def', '#8fb8ff'];
+            Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+            Chart.defaults.color = '#5b6b82';
+
+            // ---------- Monthly Recruitment Trends ----------
+            new Chart(document.getElementById('chartMonthlyTrends'), {
+                type: 'line',
+                data: {
+                    labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [
+                        { label: 'Applications', data: [98, 122, 141, 165, 178, 116], borderColor: brand, backgroundColor: 'rgba(13,92,215,0.08)', fill: true, tension: 0.35 },
+                        { label: 'Interviews', data: [34, 41, 47, 55, 61, 39], borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.08)', fill: true, tension: 0.35 },
+                        { label: 'Hires', data: [12, 15, 18, 21, 24, 14], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', fill: true, tension: 0.35 }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // ---------- Recruitment Funnel (CSS-driven, data-driven widths) ----------
+            const funnelStages = [
+                { label: 'Applications Received', value: 820, color: '#0d5cd7' },
+                { label: 'Resumes Screened (AI)', value: 690, color: '#2f6fe0' },
+                { label: 'Shortlisted', value: 310, color: '#4f8bf0' },
+                { label: 'Interviewed', value: 168, color: '#7ba6f5' },
+                { label: 'Offered', value: 96, color: '#a6c4fa' },
+                { label: 'Hired', value: 76, color: '#0a3fa0' }
+            ];
+            const funnelWrap = document.getElementById('funnelWrap');
+            const maxVal = funnelStages[0].value;
+            funnelStages.forEach(stage => {
+                const widthPct = 30 + (stage.value / maxVal) * 70; // keep a visible minimum width
+                const el = document.createElement('div');
+                el.className = 'funnel-stage';
+                el.style.width = widthPct + '%';
+                el.style.background = stage.color;
+                el.innerHTML = `<span>${stage.label}</span><span>${stage.value}</span>`;
+                funnelWrap.appendChild(el);
+            });
+
+            // ---------- Gauge helper (doughnut ring + center % overlay) ----------
+            function makeGauge(canvasId, value, color) {
+                new Chart(document.getElementById(canvasId), {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [value, 100 - value],
+                            backgroundColor: [color, '#e7edf6'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        cutout: '78%',
+                        rotation: -90,
+                        circumference: 360,
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } }
+                    }
+                });
+            }
+            makeGauge('gaugeHiringSuccess', 57.8, brand);
+            makeGauge('gaugeScreeningAccuracy', 91.2, '#22c55e');
+            makeGauge('gaugeInterviewConversion', 34.6, '#f59e0b');
+
+            // ---------- AI Resume Score Distribution ----------
+            new Chart(document.getElementById('chartScoreDistribution'), {
+                type: 'bar',
+                data: {
+                    labels: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+                    datasets: [{ label: 'Candidates', data: [22, 58, 146, 312, 282], backgroundColor: brand, borderRadius: 6 }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            // ---------- Job Position Analytics ----------
+            new Chart(document.getElementById('chartJobPosition'), {
+                type: 'bar',
+                data: {
+                    labels: ['Backend Dev', 'Frontend Dev', 'Data Scientist', 'ML Engineer', 'UI/UX Designer'],
+                    datasets: [{ label: 'Applications', data: [212, 176, 154, 132, 146], backgroundColor: '#3f8efc', borderRadius: 6 }]
+                },
+                options: { maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } } }
+            });
+
+            // ---------- Skills in Demand ----------
+            new Chart(document.getElementById('chartSkillsDemand'), {
+                type: 'bar',
+                data: {
+                    labels: ['Python', 'SQL', 'React', 'Machine Learning', 'Docker', 'AWS'],
+                    datasets: [{ label: 'Job Postings Requiring Skill', data: [186, 154, 121, 118, 96, 88], backgroundColor: brandDark, borderRadius: 6 }]
+                },
+                options: { maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } } }
+            });
+
+            // ---------- Experience Distribution ----------
+            new Chart(document.getElementById('chartExperienceDist'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['0-1 Yrs', '1-3 Yrs', '3-5 Yrs', '5+ Yrs'],
+                    datasets: [{ data: [196, 312, 204, 108], backgroundColor: palette }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+            });
+
+            // ---------- Education Distribution ----------
+            new Chart(document.getElementById('chartEducationDist'), {
+                type: 'pie',
+                data: {
+                    labels: [`Bachelor's`, `Master's`, 'PhD', 'Diploma / Other'],
+                    datasets: [{ data: [460, 276, 38, 46], backgroundColor: palette }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+            });
+
+            // ---------- Rejection Reasons ----------
+            new Chart(document.getElementById('chartRejectionReasons'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Skill Mismatch', 'Low AI Score', 'Failed Interview', 'Experience Gap', 'Salary Mismatch', 'Other'],
+                    datasets: [{ data: [172, 134, 98, 86, 44, 30], backgroundColor: ['#ef4444', '#f59e0b', '#3f8efc', '#0d5cd7', '#a9c9ff', '#c9dcff'] }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 } } } } }
+            });
+
+            // ---------- Department-wise Hiring ----------
+            new Chart(document.getElementById('chartDeptHiring'), {
+                type: 'bar',
+                data: {
+                    labels: ['Engineering', 'Data & AI', 'Design', 'Product', 'QA'],
+                    datasets: [
+                        { label: 'Open Roles', data: [40, 22, 14, 10, 12], backgroundColor: '#c9dcff', borderRadius: 6 },
+                        { label: 'Filled', data: [28, 16, 9, 7, 8], backgroundColor: brand, borderRadius: 6 }
+                    ]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            // ---------- Avg. Recruitment Time by Department ----------
+            new Chart(document.getElementById('chartRecruitmentTime'), {
+                type: 'bar',
+                data: {
+                    labels: ['Engineering', 'Data & AI', 'Design', 'Product', 'QA'],
+                    datasets: [{ label: 'Avg. Days to Hire', data: [19.2, 21.5, 15.8, 17.3, 14.1], backgroundColor: '#22c55e', borderRadius: 6 }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            // ---------- Top Recruiting Sources ----------
+            new Chart(document.getElementById('chartRecruitingSources'), {
+                type: 'bar',
+                data: {
+                    labels: ['LinkedIn', 'Job Boards', 'Referrals', 'Career Site', 'Campus Drives', 'Agencies'],
+                    datasets: [{ label: 'Hires Sourced', data: [46, 34, 28, 18, 12, 8], backgroundColor: brandDark, borderRadius: 6 }]
+                },
+                options: { maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } } }
+            });
+
+        });
+    </script>
+</body>
+
+</html>

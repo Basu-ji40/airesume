@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --sidebar-bg: #0d1b2a;
+            --sidebar-hover: #1d3557;
+            --main-bg: #f5f7fb;
+            --primary-blue: #1a56db;
+            --primary-blue-dark: #123d99;
+            --primary-blue-light: #e8f0fe;
+            --accent-cyan: #3b82f6;
+            --text-muted: #6b7789;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #e11d48;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+            background: var(--main-bg);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        #sidebar {
+            background: var(--sidebar-bg);
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            transition: all .3s ease;
+            z-index: 1030;
+            overflow-y: auto;
+        }
+
+        #sidebar.collapsed {
+            width: 80px;
+            overflow-x: hidden;
+        }
+
+        #sidebar .brand {
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.2rem;
+            padding: 1.2rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #sidebar .nav-link {
+            color: #c9d3e0;
+            padding: .75rem 1.2rem;
+            border-radius: 8px;
+            margin: .15rem .7rem;
+            transition: all .2s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+            text-decoration: none;
+        }
+
+        #sidebar .nav-link i {
+            width: 22px;
+            text-align: center;
+            margin-right: 10px;
+            font-size: 1.05rem;
+        }
+
+        #sidebar .nav-link:hover,
+        #sidebar .nav-link.active {
+            background: var(--sidebar-hover);
+            color: #fff;
+        }
+
+        #sidebar.collapsed .link-text {
+            display: none;
+        }
+
+        #main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+            transition: all .3s ease;
+        }
+
+        #main-content.expanded {
+            margin-left: 80px;
+        }
+
+        .top-navbar {
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+            padding: .75rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .notif-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .35);
+            z-index: 1020;
+            opacity: 0;
+            visibility: hidden;
+            transition: all .2s ease;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        body.sidebar-open {
+            overflow: hidden;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .05);
+            background: #fff;
+            transition: all .25s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 26px rgba(0, 0, 0, .09);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width:991.98px) {
+            #sidebar {
+                left: -250px;
+            }
+
+            #sidebar.show {
+                left: 0;
+            }
+
+            #main-content {
+                margin-left: 0;
+            }
+
+            .top-navbar {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+
+        /* ============ RESUME ANALYSIS PAGE STYLES ============ */
+
+        .page-heading h4 {
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .page-heading p {
+            color: var(--text-muted);
+            font-size: .9rem;
+            margin-bottom: 0;
+        }
+
+        .stat-card {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.blue {
+            background: #e8f0fe;
+            color: var(--primary-blue);
+        }
+
+        .stat-icon.green {
+            background: #e7f9ee;
+            color: var(--success);
+        }
+
+        .stat-icon.orange {
+            background: #fff4e5;
+            color: var(--warning);
+        }
+
+        .stat-icon.purple {
+            background: #f1e9ff;
+            color: #7c3aed;
+        }
+
+        .stat-card h3 {
+            font-weight: 700;
+            margin-bottom: 0;
+            font-size: 1.6rem;
+        }
+
+        .stat-card p {
+            color: var(--text-muted);
+            font-size: .85rem;
+            margin-bottom: 2px;
+        }
+
+        .stat-trend {
+            font-size: .78rem;
+            font-weight: 600;
+        }
+
+        .card-header-custom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid #eef1f7;
+        }
+
+        .card-header-custom h6 {
+            font-weight: 700;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-header-custom h6 i {
+            color: var(--primary-blue);
+        }
+
+        .card-body-custom {
+            padding: 22px;
+        }
+
+        .candidate-photo {
+            width: 90px;
+            height: 90px;
+            border-radius: 18px;
+            object-fit: cover;
+            border: 3px solid var(--primary-blue-light);
+        }
+
+        .status-badge {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: .78rem;
+            font-weight: 600;
+        }
+
+        .status-analyzed {
+            background: #e7f9ee;
+            color: var(--success);
+        }
+
+        .status-pending {
+            background: #fff4e5;
+            color: var(--warning);
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px dashed #eef1f7;
+            font-size: .88rem;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-row i {
+            color: var(--primary-blue);
+            width: 18px;
+        }
+
+        .info-row .label {
+            color: var(--text-muted);
+            min-width: 110px;
+        }
+
+        .info-row .value {
+            font-weight: 600;
+        }
+
+        .resume-preview-box {
+            background: var(--main-bg);
+            border: 2px dashed #c7d7f5;
+            border-radius: 12px;
+            height: 340px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            gap: 10px;
+        }
+
+        .resume-preview-box i {
+            font-size: 3rem;
+            color: var(--primary-blue);
+        }
+
+      .ats-circle {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto;
+        }
+
+        .ats-circle svg {
+            transform: rotate(-90deg);
+            width: 160px;
+            height: 160px;
+        }
+
+        .ats-circle circle {
+            fill: none;
+            stroke-width: 12;
+        }
+
+        .ats-circle .bg-ring {
+            stroke: #eef1f7;
+        }
+
+        .ats-circle .progress-ring {
+            stroke: url(#atsGradient);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .ats-circle .ats-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ats-circle .ats-text h2 {
+            font-weight: 700;
+            margin-bottom: 0;
+            color: var(--primary-blue);
+        }
+
+        .ats-circle .ats-text span {
+            font-size: .78rem;
+            color: var(--text-muted);
+        }
+
+        .skill-progress-item {
+            margin-bottom: 16px;
+        }
+
+        .skill-progress-item .lbl {
+            display: flex;
+            justify-content: space-between;
+            font-size: .87rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .progress {
+            height: 10px;
+            border-radius: 20px;
+            background: #eef1f7;
+        }
+
+        .progress-bar {
+            border-radius: 20px;
+        }
+
+        .skill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 20px;
+            background: var(--primary-blue-light);
+            color: var(--primary-blue-dark);
+            font-size: .82rem;
+            font-weight: 600;
+            margin: 4px;
+            transition: .2s;
+        }
+
+        .skill-badge:hover {
+            background: var(--primary-blue);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .skill-badge.missing {
+            background: #fdeaea;
+            color: var(--danger);
+        }
+
+        .skill-badge.missing:hover {
+            background: var(--danger);
+            color: #fff;
+        } 
+         
+        .recommend-box {
+            border-radius: 12px;
+            padding: 18px;
+            background: linear-gradient(135deg, #e7f9ee, #f4fbf6);
+            border: 1px solid #cdeedb;
+        }
+
+        .rank-badge {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--primary-blue));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .action-btn {
+            border-radius: 12px;
+            padding: 11px 20px;
+            font-weight: 600;
+            font-size: .9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: .25s;
+            border: none;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--primary-blue));
+            color: #fff;
+        }
+
+        .btn-primary-custom:hover {
+            color: #fff;
+        }
+
+        .btn-success-custom {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+        }
+
+        .btn-success-custom:hover {
+            color: #fff;
+        }
+
+        .btn-outline-custom {
+            background: #fff;
+            color: var(--primary-blue);
+            border: 1.5px solid var(--primary-blue-light);
+        }
+
+        .btn-outline-custom:hover {
+            background: var(--primary-blue-light);
+            color: var(--primary-blue);
+        }
+
+        .chart-box {
+            height: 260px;
+        }
+
+        .summary-box {
+            background: var(--main-bg);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: .88rem;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .match-percentage-bar {
+            height: 14px;
+            border-radius: 20px;
+            background: #eef1f7;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div id="sidebar">
+        <div class="brand"><span class="link-text d-flex align-items-center"><img
+                    src="{{ url_for('static', filename='images/logo2.png') }}" alt="Logo" width="48" height="48"
+                    class="me-2 rounded-circle" />HYRIZON</span></div>
+        <ul class="nav flex-column mt-2">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i
+                        class="bi bi-speedometer2"></i><span class="link-text">Dashboard</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('resume') }}"><i
+                        class="bi bi-file-earmark-text"></i><span class="link-text">Upload Resume</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('job') }}"><i class="bi bi-briefcase"></i><span
+                        class="link-text">Job Listing</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('candidates') }}"><i
+                        class="bi bi-people"></i><span class="link-text">Candidates</span></a></li>
+            <li class="nav-item"><a class="nav-link active" href="{{ url_for('analysis') }}"><i
+                        class="bi bi-cpu"></i><span class="link-text">Resume Analysis</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('interview') }}"><i
+                        class="bi bi-bullseye"></i><span class="link-text">Interview Recommendation</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('analytics') }}"><i
+                        class="bi bi-bar-chart"></i><span class="link-text">Analytics</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('reports') }}"><i
+                        class="bi bi-folder2-open"></i><span class="link-text">Reports</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('settings') }}"><i class="bi bi-gear"></i><span
+                        class="link-text">Settings</span></a></li>
+        </ul>
+    </div>
+    <div id="main-content">
+        <nav class="top-navbar navbar navbar-light bg-white shadow-sm px-3">
+            <div class="d-flex align-items-center"><button class="btn btn-outline-secondary me-3" id="toggleSidebar"
+                    type="button"><i class="bi bi-list fs-4"></i></button>
+                <div class="input-group" style="width:250px;"><span class="input-group-text bg-white"><i
+                            class="bi bi-search"></i></span><input type="text" class="form-control"
+                        placeholder="Search analysis" /></div>
+            </div>
+            <div class="d-flex align-items-center gap-4">
+                <div class="position-relative"><i class="bi bi-bell fs-5"></i><span class="notif-dot"></span></div>
+                <div class="dropdown"><a class="d-flex align-items-center text-decoration-none dropdown-toggle" href="#"
+                        data-bs-toggle="dropdown"><img src="{{ url_for('static', filename='images/port.JPG') }}"
+                            class="rounded-circle me-2" width="36" height="36" alt="profile" /><span
+                            class="text-dark fw-semibold">Admin</span></a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#">Profile</a></li>
+                        <li><a class="dropdown-item" href="#">Settings</a></li>
+                        <li>
+                            <hr class="dropdown-divider" />
+                        </li>
+                        <li><a class="dropdown-item" href="#">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- ===================== RESUME ANALYSIS PAGE CONTENT ===================== -->
+        <div class="p-4">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 page-heading">
+                <div>
+                    <h4>Resume Analysis</h4>
+                    <p>AI-powered evaluation of candidate resumes against job requirements</p>
+                </div>
+              <!--<div>
+                    <a href="{{ url_for('candidates') }}" class="action-btn btn-outline-custom"><i
+                            class="bi bi-arrow-left"></i> Back to Candidates</a>
+                    </div>-->
+                
+            </div>
+
+            <!-- TOP STATISTICS CARDS -->
+            <div class="row g-3 mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card">
+                        <div class="stat-icon blue"><i class="bi bi-file-earmark-text-fill"></i></div>
+                        <div>
+                            <p>Total Resumes</p>
+                            <h3>1,248</h3>
+                            <span class="stat-trend text-success"><i class="bi bi-arrow-up-short"></i>8.2% this
+                                month</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card">
+                        <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+                        <div>
+                            <p>Analyzed Resumes</p>
+                            <h3>1,032</h3>
+                            <span class="stat-trend text-success"><i class="bi bi-arrow-up-short"></i>82.7%
+                                completion</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card">
+                        <div class="stat-icon orange"><i class="bi bi-hourglass-split"></i></div>
+                        <div>
+                            <p>Pending Analysis</p>
+                            <h3>216</h3>
+                            <span class="stat-trend text-warning"><i class="bi bi-clock-history"></i>In queue</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card stat-card">
+                        <div class="stat-icon purple"><i class="bi bi-speedometer2"></i></div>
+                        <div>
+                            <p>Average ATS Score</p>
+                            <h3>76.4%</h3>
+                            <span class="stat-trend text-success"><i class="bi bi-arrow-up-short"></i>3.1%
+                                improved</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <!-- CANDIDATE INFORMATION CARD -->
+                <div class="col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-person-vcard-fill"></i> Candidate Information</h6>
+                        </div>
+                        <div class="card-body-custom text-center">
+                            <img src="../static/images/prem.png"" class="candidate-photo mb-3" alt="Candidate">
+                            <h5 class="fw-bold mb-1">Prem prassad Devkota</h5>
+                            <span class="status-badge status-analyzed"><i
+                                    class="bi bi-check-circle-fill me-1"></i>Analyzed</span>
+
+                            <div class="text-start mt-4">
+                                <div class="info-row">
+                                    <i class="bi bi-envelope-fill"></i>
+                                    <span class="label">Email</span>
+                                    <span class="value">premdev@gmail.com</span>
+                                </div>
+                                <div class="info-row">
+                                    <i class="bi bi-telephone-fill"></i>
+                                    <span class="label">Phone</span>
+                                    <span class="value">+97798637155</span>
+                                </div>
+                                <div class="info-row">
+                                    <i class="bi bi-briefcase-fill"></i>
+                                    <span class="label">Applied For</span>
+                                    <span class="value">Senior Data Analyst</span>
+                                </div>
+                                <div class="info-row">
+                                    <i class="bi bi-award-fill"></i>
+                                    <span class="label">Experience</span>
+                                    <span class="value">5.5 Years</span>
+                                </div>
+                                <div class="info-row">
+                                    <i class="bi bi-file-earmark-check-fill"></i>
+                                    <span class="label">Resume Status</span>
+                                    <span class="value text-success">Reviewed</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESUME PREVIEW CARD -->
+                <div class="col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-file-earmark-pdf-fill"></i> Resume Preview</h6>
+                        </div>
+                        <div class="card-body-custom">
+                            <div class="resume-preview-box mb-3">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                                <span>julet.pdf</span>
+                                <small>2.4 MB &middot; Uploaded 2 days ago</small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="action-btn btn-primary-custom flex-fill"><i class="bi bi-eye-fill"></i>
+                                    View Resume</button>
+                                <button class="action-btn btn-outline-custom flex-fill"><i
+                                        class="bi bi-download"></i> Download</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI RESUME ANALYSIS CARD -->
+                <div class="col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-robot"></i> AI Resume Analysis</h6>
+                        </div>
+                        <div class="card-body-custom text-center">
+                            <div class="ats-circle mb-2">
+                                <svg viewBox="0 0 160 160">
+                                    <defs>
+                                        <linearGradient id="atsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#3b82f6" />
+                                            <stop offset="100%" stop-color="#1a56db" />
+                                        </linearGradient>
+                                    </defs>
+                                    <circle class="bg-ring" cx="80" cy="80" r="68"></circle>
+                                    <circle class="progress-ring" id="atsRing" cx="80" cy="80" r="68"
+                                        stroke-dasharray="427" stroke-dashoffset="427"></circle>
+                                </svg>
+                                <div class="ats-text">
+                                    <h2>82%</h2>
+                                    <span>ATS Score</span>
+                                </div>
+                            </div>
+
+                            <div class="text-start mt-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small class="fw-semibold">Job Match Percentage</small>
+                                    <small class="fw-bold text-primary">78%</small>
+                                </div>
+                                <div class="match-percentage-bar mb-3">
+                                    <div class="progress-bar bg-primary h-100" style="width:78%;"></div>
+                                </div>
+
+                                <small class="text-muted fw-semibold">Keyword Match</small>
+                                <p class="mb-0 small">34 / 42 keywords matched with job description</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUMMARY / STRENGTHS / MISSING -->
+            <div class="row g-3 mb-4">
+                <div class="col-xl-6">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-file-text-fill"></i> Resume Summary</h6>
+                        </div>
+                        <div class="card-body-custom">
+                            <div class="summary-box">
+                                Prem  is a results-driven data analyst with over 5 years of experience in data
+                                visualization, statistical modeling, and business intelligence. Proven track record of
+                                improving reporting efficiency by 40% through automation and dashboard design. Strong
+                                communicator with cross-functional stakeholder management experience across product
+                                and marketing teams.
+                            </div>
+
+                            <div class="mt-3">
+                                <h6 class="fw-bold mb-2"><i class="bi bi-star-fill text-warning me-1"></i>Resume
+                                    Strengths</h6>
+                                <ul class="mb-0 small">
+                                    <li>Strong quantifiable achievements with clear metrics</li>
+                                    <li>Relevant certifications in Data Science &amp; Analytics</li>
+                                    <li>Consistent career progression with increasing responsibility</li>
+                                    <li>Well-structured formatting, ATS-friendly layout</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-6">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-exclamation-triangle-fill"></i> Missing Skills</h6>
+                        </div>
+                        <div class="card-body-custom">
+                            <p class="text-muted small mb-3">These job-required skills were not found in the resume:
+                            </p>
+                            <div>
+                                <span class="skill-badge missing"><i class="bi bi-x-circle"></i> Tableau</span>
+                                <span class="skill-badge missing"><i class="bi bi-x-circle"></i> Power BI</span>
+                                <span class="skill-badge missing"><i class="bi bi-x-circle"></i> Docker</span>
+                                <span class="skill-badge missing"><i class="bi bi-x-circle"></i> AWS</span>
+                                <span class="skill-badge missing"><i class="bi bi-x-circle"></i> Agile/Scrum</span>
+                            </div>
+
+                            <hr>
+
+                            <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb-fill text-primary me-1"></i>Recommendation
+                            </h6>
+                            <p class="small text-muted mb-0">
+                                Encourage candidate to highlight visualization tool experience or provide upskilling
+                                resources prior to interview.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXTRACTED SKILLS -->
+            <div class="card mb-4">
+                <div class="card-header-custom">
+                    <h6><i class="bi bi-tags-fill"></i> Extracted Skills</h6>
+                </div>
+                <div class="card-body-custom">
+                    <span class="skill-badge"><i class="bi bi-check2"></i> Python</span>
+                    <span class="skill-badge"><i class="bi bi-check2"></i> SQL</span>
+                    <span class="skill-badge"><i class="bi bi-check2"></i> Excel</span>
+                    <span class="skill-badge"><i class="bi bi-check2"></i> Data Visualization</span>
+                    <span class="skill-badge"><i class="bi bi-check2"></i> Statistical Analysis</span>
+                    <span class="skill-badge"><i class="bi bi-check2"></i> Machine Learning</span>
+                    <span class="skill-badge"><i class="bi bi-check2"></i> Communication</span>
+                    <span class="skill-badge"><i class="bi bi-check2"></i> Team Leadership</span>
+                    <span class="skill-badge"><i class="bi bi-check2"></i> Project Management</span>
+                    <span class="skill-badge"><i class="bi bi-check2"></i> Power Query</span>
+                    <span class="skill-badge"><i class="bi bi-check2"></i> Business Intelligence</span>
+                </div>
+            </div>
+
+            <!-- 
+            <!-- AI RECOMMENDATION SECTION -->
+            <div class="card mb-4">
+                <div class="card-header-custom">
+                    <h6><i class="bi bi-patch-check-fill"></i> AI Recommendation</h6>
+                </div>
+                <div class="card-body-custom">
+                    <div class="row g-3 align-items-stretch">
+                        <div class="col-lg-8">
+                            <div class="recommend-box h-100">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="rank-badge">#3</div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0">Candidate Ranking: 3rd out of 48 applicants</h6>
+                                        <small class="text-muted">For Senior Data Analyst position</small>
+                                    </div>
+                                </div>
+                                <p class="small mb-2">
+                                    <strong>Interview Recommendation:</strong> Strongly consider for first-round
+                                    technical interview. Candidate demonstrates solid analytical foundation and
+                                    relevant tooling experience.
+                                </p>
+                                <p class="small mb-0">
+                                    <strong>Overall Evaluation:</strong> Above-average resume quality with strong ATS
+                                    compatibility, minor skill gaps in visualization tooling that can be addressed
+                                    during onboarding.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div
+                                class="h-100 d-flex flex-column align-items-center justify-content-center border rounded-4 p-3">
+                                <i class="bi bi-hand-thumbs-up-fill text-success" style="font-size:2.5rem;"></i>
+                                <h5 class="fw-bold text-success mt-2 mb-1">Recommended</h5>
+                                <span class="text-muted small text-center">Meets 82% of role requirements</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="card mb-4">
+                <div class="card-body-custom d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
+                    <button class="action-btn btn-primary-custom"><i class="bi bi-arrow-repeat"></i> Analyze
+                        Again</button>
+                    <button class="action-btn btn-success-custom"><i class="bi bi-calendar-check-fill"></i>
+                        Recommend Interview</button>
+                    <button class="action-btn btn-outline-custom"><i class="bi bi-file-earmark-arrow-down-fill"></i>
+                        Download Report</button>
+                    <button class="action-btn btn-outline-custom"><i class="bi bi-eye-fill"></i> View Resume</button>
+                </div>
+            </div>
+
+        </div>
+        <!-- ===================== END RESUME ANALYSIS PAGE CONTENT ===================== -->
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>const sidebar = document.getElementById('sidebar'); const mainContent = document.getElementById('main-content'); const toggleSidebarButton = document.getElementById('toggleSidebar'); const sidebarOverlay = document.getElementById('sidebarOverlay'); const sidebarStateKey = 'hyrizon-sidebar-state'; function closeMobileSidebar() { sidebar.classList.remove('show'); sidebarOverlay.classList.remove('show'); document.body.classList.remove('sidebar-open'); } function openMobileSidebar() { sidebar.classList.add('show'); sidebarOverlay.classList.add('show'); document.body.classList.add('sidebar-open'); } function setDesktopSidebarState(isCollapsed) { sidebar.classList.toggle('collapsed', isCollapsed); mainContent.classList.toggle('expanded', isCollapsed); toggleSidebarButton.setAttribute('aria-expanded', String(!isCollapsed)); localStorage.setItem(sidebarStateKey, isCollapsed ? 'collapsed' : 'expanded'); } function applySavedSidebarState() { const saved = localStorage.getItem(sidebarStateKey); if (window.innerWidth >= 992) setDesktopSidebarState(saved === 'collapsed'); } function handleSidebarToggle() { if (window.innerWidth >= 992) { const isCollapsed = !sidebar.classList.contains('collapsed'); setDesktopSidebarState(isCollapsed); } else { if (sidebar.classList.contains('show')) closeMobileSidebar(); else openMobileSidebar(); } } toggleSidebarButton?.addEventListener('click', handleSidebarToggle); sidebarOverlay?.addEventListener('click', closeMobileSidebar); window.addEventListener('resize', function () { if (window.innerWidth >= 992) { sidebar.classList.remove('show'); sidebarOverlay.classList.remove('show'); document.body.classList.remove('sidebar-open'); applySavedSidebarState(); } else { sidebar.classList.remove('collapsed'); mainContent.classList.remove('expanded'); toggleSidebarButton.setAttribute('aria-expanded', 'false'); } }); applySavedSidebarState(); if (window.innerWidth < 992) closeMobileSidebar();</script>
+
+    <script>
+        // ATS Circular Progress Animation
+        window.addEventListener('DOMContentLoaded', function () {
+            const ring = document.getElementById('atsRing');
+            const radius = 68;
+            const circumference = 2 * Math.PI * radius;
+            const score = 82; // percentage
+            const offset = circumference - (score / 100) * circumference;
+            ring.style.strokeDasharray = circumference;
+            setTimeout(() => {
+                ring.style.strokeDashoffset = offset;
+            }, 200);
+
+            // Skills Match Bar Chart
+           /* const ctxBar = document.getElementById('skillsMatchChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Python', 'Java', 'SQL', 'ML', 'Comm.', 'Leadership'],
+                    datasets: [{
+                        label: 'Match %',
+                        data: [88, 45, 92, 68, 85, 74],
+                        backgroundColor: [
+                            '#1a56db', '#3b82f6', '#16a34a', '#f59e0b', '#1a56db', '#3b82f6'
+                        ],
+                        borderRadius: 8,
+                        maxBarThickness: 34
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: '#eef1f7' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // ATS Score Distribution Doughnut Chart
+            const ctxDough = document.getElementById('atsDoughnutChart').getContext('2d');
+            new Chart(ctxDough, {
+                type: 'doughnut',
+                data: {
+                    labels: ['90-100%', '75-89%', '60-74%', 'Below 60%'],
+                    datasets: [{
+                        data: [18, 42, 28, 12],
+                        backgroundColor: ['#16a34a', '#1a56db', '#f59e0b', '#e11d48'],
+                        borderWidth: 0,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                    }
+                }
+            }); */
+        });
+    </script>
+</body>
+</html>

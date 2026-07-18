@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>HYRIZON AI Resume System</title>
+
+ <link href="{{url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet">
+
+     <link href ="{{url_for('static',filename='css/bootstrap-icons.css')}}"rel="stylesheet" >
+
+    <style>
+        .navbar-brand img {
+            width: 45px;
+            height: 45px;
+            margin-right: 10px;
+        }
+
+        .app-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            margin-right: 10px;
+        }
+
+        .btn-login {
+            margin-right: 10px;
+        }
+
+        .stats-card {
+            transition: .3s;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, .15);
+        }
+
+        .stat-icon {
+            font-size: 45px;
+            color: #4F46E5;
+        }
+
+        /* Carousel */
+        .carousel {
+            max-width: 1600px;
+            margin: auto;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, .18);
+        }
+
+        /* Images */
+        .carousel-item img {
+            width: 100%;
+            height: 500px;
+            object-fit: contain;
+        }
+
+        /* Controls */
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            background-color: rgba(0, 0, 0, .4);
+            border-radius: 50%;
+            padding: 18px;
+        }
+
+        /* Indicators */
+        .carousel-indicators [data-bs-target] {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* css code for buttom pannel   
+        .stats-section{
+    background:#ffffff;
+    border-radius:25px;
+    padding:35px 25px;
+    box-shadow:0 10px 35px rgba(0,0,0,0.08);
+}
+
+
+.stat-item{
+    position:relative;
+    text-align:center;
+    padding:15px;
+}
+
+
+.stat-icon{
+    width:65px;
+    height:65px;
+    margin:auto;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:32px; 
+
+     color outside effect 
+    box-shadow:0 0 25px rgba(79,70,229,0.35);
+
+
+
+.icon1{
+    color:#4f46e5;
+    background:#eef2ff;
+}
+
+
+.icon2{
+    color:#10b981;
+    background:#ecfdf5;
+    box-shadow:0 0 25px rgba(16,185,129,.35);
+}
+
+
+.icon3{
+    color:#3b82f6;
+    background:#eff6ff;
+    box-shadow:0 0 25px rgba(59,130,246,.35);
+}
+
+
+.icon4{
+    color:#f59e0b;
+    background:#fffbeb;
+    box-shadow:0 0 25px rgba(245,158,11,.35);
+}
+
+
+.number{
+    font-size:30px;
+    font-weight:700;
+    margin-top:12px;
+}
+
+
+.title{
+    color:#555;
+    margin-top:5px;
+} */
+    </style>
+
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg bg-light shadow">
+        <div class="container ">
+
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{{ url_for('static', filename='images/logo1.jpeg')}}">
+                <span class="app-name">HYRIZON</span>
+            </a>
+
+
+
+            <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link " href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/feature">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
+                </ul>
+
+                <div>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary px-4">
+                        Login
+                    </a>
+
+                    <a href="{{ url_for('register') }}" class="btn btn-primary px-4">
+                        Registration
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </nav>
+
+   <div class="container mt-5 pt-4">
+    <div class="row align-items-start g-4">
+
+    <!-- Contact Information -->
+
+    <div class="col-lg-4">
+
+        <div class="contact-card shadow-sm rounded-4 p-4 h-100">
+
+            <h3 class="fw-bold mb-4">
+                Contact Information
+            </h3>
+
+            <p class="text-muted mb-4">
+                Feel free to contact us anytime. Our team is always ready to assist you.
+            </p>
+
+            <div class="contact-item d-flex mb-4">
+
+                <div class="contact-icon">
+                    <i class="bi bi-envelope-fill"></i>
+                </div>
+
+                <div class="ms-3">
+                    <h6 class="fw-bold mb-1">Email</h6>
+
+                    <a href="mailto:support@hyrizonai.com" class="text-decoration-none">
+                        hyrizon26@gmail.com.com
+                    </a>
+                </div>
+
+            </div>
+
+            <div class="contact-item d-flex mb-4">
+
+                <div class="contact-icon">
+                    <i class="bi bi-telephone-fill"></i>
+                </div>
+
+                <div class="ms-3">
+                    <h6 class="fw-bold mb-1">Phone</h6>
+
+                    <a href="tel:+9779812345678" class="text-decoration-none">
+                        091-525306
+                    </a>
+                </div>
+
+            </div>
+
+            <div class="contact-item d-flex mb-4">
+
+                <div class="contact-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </div>
+
+                <div class="ms-3">
+                    <h6 class="fw-bold mb-1">Address</h6>
+
+                    <p class="mb-0 text-muted">
+                        Hadigau-4<br>
+                        Kathmandu, Nepal<br>
+                        
+                    </p>
+
+                </div>
+
+            </div>
+
+            <hr>
+
+            <h6 class="fw-bold mb-3">
+                Follow Us
+            </h6>
+
+            <div class="social-icons d-flex gap-3">
+
+                <a href="#" class="social-btn">
+                    <i class="bi bi-facebook"></i>
+                </a>
+
+                <a href="#" class="social-btn">
+                    <i class="bi bi-twitter-x"></i>
+                </a>
+
+                <a href="#" class="social-btn">
+                    <i class="bi bi-linkedin"></i>
+                </a>
+
+                <a href="#" class="social-btn">
+                    <i class="bi bi-instagram"></i>
+                </a>
+
+                <a href="#" class="social-btn">
+                    <i class="bi bi-github"></i>
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+    
+
+    <!-- Large Gap -->
+    <div class="col-lg-2"></div>
+
+    <!-- Contact Form -->
+    <div class="col-lg-6">
+
+        <div class="contact-card shadow-sm rounded-4 p-4">
+
+            <h3 class="fw-bold mb-4">
+                Send Us a Message
+            </h3>
+
+            <form>
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <input type="text"
+                               class="form-control form-control-lg"
+                               placeholder="Full Name"
+                               required>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <input type="email"
+                               class="form-control form-control-lg"
+                               placeholder="Email Address"
+                               required>
+
+                    </div>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <input type="text"
+                           class="form-control form-control-lg"
+                           placeholder="Subject">
+
+                </div>
+
+                <div class="mb-3">
+
+                    <textarea class="form-control"
+                              rows="6"
+                              placeholder="Write your message..."
+                              required></textarea>
+
+                </div>
+
+                <div class="d-grid">
+
+                    <button class="btn btn-primary btn-lg send-btn">
+
+                        <i class="bi bi-send-fill me-2"></i>
+
+                        Send Message
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+
+</body>
+
+</html>

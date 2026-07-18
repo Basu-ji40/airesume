@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+
+    <link href="{{url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet">
+
+    <style>
+        .btn-purple {
+            background-color: #5a43f1;
+            border-color: #5a43f1;
+            color: #fff;
+        }
+
+        .btn-purple:hover {
+            background-color: #4633c7;
+            border-color: #4633c7;
+            color: #fff;
+        }
+
+        .text-purple {
+            color: #5a43f1;
+        }
+    </style>
+
+</head>
+
+<body class="bg-light d-flex justify-content-center align-items-center vh-100">
+
+    <div class="card shadow border-0 p-4" style="width:380px; border-radius:10px;">
+
+        <div class="mb-3">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-sm">
+                ← Back to index
+            </a>
+        </div>
+
+        <form>
+
+            <h1 class="text-center mb-1">Welcome Back!</h1>
+
+            <h6 class="text-center text-secondary fw-normal mb-4">
+                Login to your account
+            </h6>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    Email Address
+                </label>
+
+                <input type="email" class="form-control" placeholder="Enter your email">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    Password
+                </label>
+
+                <input type="password" class="form-control" placeholder="Enter your password">
+            </div>
+
+            <div class="text-end mb-4">
+                <a href="#" class="text-decoration-none text-purple">
+                    Forgot Password?
+                </a>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{{ url_for('login') }}" class="btn btn-primary">
+                    Login
+                </a>
+            </div>
+
+
+
+
+            <p class="text-center mt-4 mb-0">
+                Don't have an account?
+                <a href="{{ url_for('register') }}" class="text-decoration-none fw-bold text-purple">
+                    Register Here
+                </a>
+            </p>
+
+        </form>
+
+    </div>
+
+    <script src="bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

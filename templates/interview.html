@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interview Recommendation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --sidebar-bg: #0d1b2a;
+            --sidebar-hover: #1d3557;
+            --main-bg: #f5f7fb;
+            --primary-blue: #1a56db;
+            --primary-blue-dark: #123d99;
+            --primary-blue-light: #e8f0fe;
+            --accent-cyan: #3b82f6;
+            --text-muted: #6b7789;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #e11d48;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+            background: var(--main-bg);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        #sidebar {
+            background: var(--sidebar-bg);
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            transition: all .3s ease;
+            z-index: 1030;
+            overflow-y: auto;
+        }
+
+        #sidebar.collapsed {
+            width: 80px;
+            overflow-x: hidden;
+        }
+
+        #sidebar .brand {
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.2rem;
+            padding: 1.2rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #sidebar .nav-link {
+            color: #c9d3e0;
+            padding: .75rem 1.2rem;
+            border-radius: 8px;
+            margin: .15rem .7rem;
+            transition: all .2s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+            text-decoration: none;
+        }
+
+        #sidebar .nav-link i {
+            width: 22px;
+            text-align: center;
+            margin-right: 10px;
+            font-size: 1.05rem;
+        }
+
+        #sidebar .nav-link:hover,
+        #sidebar .nav-link.active {
+            background: var(--sidebar-hover);
+            color: #fff;
+        }
+
+        #sidebar.collapsed .link-text {
+            display: none;
+        }
+
+        #main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+            transition: all .3s ease;
+        }
+
+        #main-content.expanded {
+            margin-left: 80px;
+        }
+
+        .top-navbar {
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+            padding: .75rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .notif-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .35);
+            z-index: 1020;
+            opacity: 0;
+            visibility: hidden;
+            transition: all .2s ease;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        body.sidebar-open {
+            overflow: hidden;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .05);
+            background: #fff;
+            transition: all .25s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 26px rgba(0, 0, 0, .09);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width:991.98px) {
+            #sidebar {
+                left: -250px;
+            }
+
+            #sidebar.show {
+                left: 0;
+            }
+
+            #main-content {
+                margin-left: 0;
+            }
+
+            .top-navbar {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+
+        /* ============ PAGE-SPECIFIC STYLES ============ */
+
+        .page-heading h4 {
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .page-heading p {
+            color: var(--text-muted);
+            font-size: .9rem;
+            margin-bottom: 0;
+        }
+
+        .card-header-custom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid #eef1f7;
+        }
+
+        .card-header-custom h6 {
+            font-weight: 700;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-header-custom h6 i {
+            color: var(--primary-blue);
+        }
+
+        .card-body-custom {
+            padding: 22px;
+        }
+
+        /* Candidate photo/info */
+        .candidate-photo {
+            width: 84px;
+            height: 84px;
+            border-radius: 18px;
+            object-fit: cover;
+            border: 3px solid var(--primary-blue-light);
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px dashed #eef1f7;
+            font-size: .88rem;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-row i {
+            color: var(--primary-blue);
+            width: 18px;
+        }
+
+        .info-row .label {
+            color: var(--text-muted);
+            min-width: 130px;
+        }
+
+        .info-row .value {
+            font-weight: 600;
+        }
+
+        /* Circular progress (AI Match & Readiness) */
+        .circle-progress {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto;
+        }
+
+        .circle-progress svg {
+            transform: rotate(-90deg);
+            width: 140px;
+            height: 140px;
+        }
+
+        .circle-progress circle {
+            fill: none;
+            stroke-width: 11;
+        }
+
+        .circle-progress .bg-ring {
+            stroke: #eef1f7;
+        }
+
+        .circle-progress .progress-ring {
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .circle-progress .circle-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .circle-progress .circle-text h2 {
+            font-weight: 700;
+            margin-bottom: 0;
+            font-size: 1.7rem;
+        }
+
+        .circle-progress .circle-text span {
+            font-size: .74rem;
+            color: var(--text-muted);
+        }
+
+        /* Recommendation banner */
+        .recommend-banner {
+            border-radius: 14px;
+            padding: 22px;
+            text-align: center;
+            color: #fff;
+            background: linear-gradient(135deg, #16a34a, #15803d);
+        }
+
+        .recommend-banner.hire {
+            background: linear-gradient(135deg, #3b82f6, #1a56db);
+        }
+
+        .recommend-banner.hold {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+        }
+
+        .recommend-banner.reject {
+            background: linear-gradient(135deg, #f87171, #e11d48);
+        }
+
+        .recommend-banner i {
+            font-size: 2.4rem;
+        }
+
+        .recommend-banner h4 {
+            font-weight: 700;
+            margin: 8px 0 4px;
+        }
+
+        .recommend-banner small {
+            opacity: .9;
+        }
+
+        /* Interview type badge */
+        .interview-type-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: var(--main-bg);
+            border: 1px solid #eef1f7;
+            font-size: .88rem;
+            font-weight: 600;
+        }
+
+        .interview-type-badge.recommended {
+            background: var(--primary-blue-light);
+            border-color: #c7d7f5;
+            color: var(--primary-blue-dark);
+        }
+
+        .interview-type-badge i {
+            font-size: 1.2rem;
+            color: var(--primary-blue);
+        }
+
+        .interview-type-badge .tag {
+            margin-left: auto;
+            font-size: .72rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: var(--primary-blue);
+            color: #fff;
+        }
+
+        /* Skills assessment */
+        .skill-progress-item {
+            margin-bottom: 16px;
+        }
+
+        .skill-progress-item .lbl {
+            display: flex;
+            justify-content: space-between;
+            font-size: .87rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .progress {
+            height: 10px;
+            border-radius: 20px;
+            background: #eef1f7;
+        }
+
+        .progress-bar {
+            border-radius: 20px;
+        }
+
+        /* Strengths / verify list */
+        .list-check li,
+        .list-verify li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: .88rem;
+            padding: 7px 0;
+        }
+
+        .list-check li i {
+            color: var(--success);
+            margin-top: 2px;
+        }
+
+        .list-verify li i {
+            color: var(--warning);
+            margin-top: 2px;
+        }
+
+        /* Interview status badges */
+        .status-badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: .8rem;
+            font-weight: 600;
+        }
+
+        .status-scheduled {
+            background: #e8f0fe;
+            color: var(--primary-blue);
+        }
+
+        .status-pending {
+            background: #fff4e5;
+            color: var(--warning);
+        }
+
+        .status-completed {
+            background: #e7f9ee;
+            color: var(--success);
+        }
+
+        .status-cancelled {
+            background: #fdeaea;
+            color: var(--danger);
+        }
+
+        /* Schedule table */
+        .schedule-table th {
+            font-size: .76rem;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            color: var(--text-muted);
+            border-bottom-width: 1px;
+        }
+
+        .schedule-table td {
+            font-size: .88rem;
+            vertical-align: middle;
+        }
+
+        /* Recruiter notes */
+        .notes-textarea {
+            border-radius: 12px;
+            border: 1px solid #e3e8f0;
+            padding: 14px;
+            font-size: .88rem;
+            resize: vertical;
+        }
+
+        .notes-textarea:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 .2rem rgba(26, 86, 219, .15);
+        }
+
+        .note-chip {
+            background: var(--main-bg);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: .82rem;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--primary-blue);
+        }
+
+        .note-chip .meta {
+            font-size: .72rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Action buttons */
+        .action-btn {
+            border-radius: 12px;
+            padding: 11px 20px;
+            font-weight: 600;
+            font-size: .9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: .25s;
+            border: none;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--primary-blue));
+            color: #fff;
+        }
+
+        .btn-primary-custom:hover {
+            color: #fff;
+        }
+
+        .btn-success-custom {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+        }
+
+        .btn-success-custom:hover {
+            color: #fff;
+        }
+
+        .btn-outline-custom {
+            background: #fff;
+            color: var(--primary-blue);
+            border: 1.5px solid var(--primary-blue-light);
+        }
+
+        .btn-outline-custom:hover {
+            background: var(--primary-blue-light);
+            color: var(--primary-blue);
+        }
+
+        /* Modal tweaks */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #eef1f7;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #eef1f7;
+        }
+
+        .form-label {
+            font-size: .85rem;
+            font-weight: 600;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+            font-size: .88rem;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 .2rem rgba(26, 86, 219, .15);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div id="sidebar">
+        <div class="brand"><span class="link-text d-flex align-items-center"><img
+                    src="{{ url_for('static', filename='images/logo2.png') }}" alt="Logo" width="48" height="48"
+                    class="me-2 rounded-circle" />HYRIZON</span></div>
+        <ul class="nav flex-column mt-2">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i
+                        class="bi bi-speedometer2"></i><span class="link-text">Dashboard</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('resume') }}"><i
+                        class="bi bi-file-earmark-text"></i><span class="link-text">Upload Resume</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('job') }}"><i class="bi bi-briefcase"></i><span
+                        class="link-text">Job Listing</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('candidates') }}"><i
+                        class="bi bi-people"></i><span class="link-text">Candidates</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('analysis') }}"><i class="bi bi-cpu"></i><span
+                        class="link-text">Resume Analysis</span></a></li>
+            <li class="nav-item"><a class="nav-link active" href="{{ url_for('interview') }}"><i
+                        class="bi bi-bullseye"></i><span class="link-text">Interview Recommendation</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('analytics') }}"><i
+                        class="bi bi-bar-chart"></i><span class="link-text">Analytics</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('reports') }}"><i
+                        class="bi bi-folder2-open"></i><span class="link-text">Reports</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('settings') }}"><i class="bi bi-gear"></i><span
+                        class="link-text">Settings</span></a></li>
+        </ul>
+    </div>
+    <div id="main-content">
+        <nav class="top-navbar navbar navbar-light bg-white shadow-sm px-3">
+            <div class="d-flex align-items-center"><button class="btn btn-outline-secondary me-3" id="toggleSidebar"
+                    type="button"><i class="bi bi-list fs-4"></i></button>
+                <div class="input-group" style="width:250px;"><span class="input-group-text bg-white"><i
+                            class="bi bi-search"></i></span><input type="text" class="form-control"
+                        placeholder="Search interview" /></div>
+            </div>
+            <div class="d-flex align-items-center gap-4">
+                <div class="position-relative"><i class="bi bi-bell fs-5"></i><span class="notif-dot"></span></div>
+                <div class="dropdown"><a class="d-flex align-items-center text-decoration-none dropdown-toggle" href="#"
+                        data-bs-toggle="dropdown"><img src="{{ url_for('static', filename='images/port.JPG') }}"
+                            class="rounded-circle me-2" width="36" height="36" alt="profile" /><span
+                            class="text-dark fw-semibold">Admin</span></a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#">Profile</a></li>
+                        <li><a class="dropdown-item" href="#">Settings</a></li>
+                        <li>
+                            <hr class="dropdown-divider" />
+                        </li>
+                        <li><a class="dropdown-item" href="#">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- ===================== INTERVIEW RECOMMENDATION PAGE CONTENT ===================== -->
+        <div class="p-4">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 page-heading">
+                <div>
+                    <h4>Interview Recommendation</h4>
+                    <p>Review AI-backed hiring guidance and manage the interview process for this candidate</p>
+                </div>
+               
+            </div>
+
+            <div class="row g-3 mb-3">
+
+                <!-- CANDIDATE INFORMATION -->
+                <div class="col-xl-5">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-person-vcard-fill"></i> Candidate Information</h6>
+                        </div>
+                        <div class="card-body-custom">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <img src="{{ url_for('static', filename='images/prem.png') }}" class="candidate-photo" alt="Candidate">
+                                <div>
+                                    <h5 class="fw-bold mb-1">Prem Prasad Devkota </h5>
+                                    <span class="text-muted small">Candidate ID: BST_26-01</span>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <i class="bi bi-briefcase-fill"></i>
+                                <span class="label">Position Applied</span>
+                                <span class="value">Senior Data Analyst</span>
+                            </div>
+                            <div class="info-row">
+                                <i class="bi bi-award-fill"></i>
+                                <span class="label">Experience</span>
+                                <span class="value">5.5 Years</span>
+                            </div>
+                            <div class="info-row">
+                                <i class="bi bi-mortarboard-fill"></i>
+                                <span class="label">Education</span>
+                                <span class="value">B.Sc. Computer Science</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI MATCH & READINESS SCORE (combined) -->
+                <div class="col-xl-7">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-graph-up-arrow"></i> AI Evaluation Scores</h6>
+                        </div>
+                        <div class="card-body-custom">
+                            <div class="row text-center">
+                                <div class="col-6 border-end">
+                                    <div class="circle-progress mb-2" style="width:120px;height:120px;">
+                                        <svg viewBox="0 0 140 140">
+                                            <circle class="bg-ring" cx="70" cy="70" r="58"></circle>
+                                            <circle class="progress-ring" id="matchRing" cx="70" cy="70" r="58"
+                                                stroke="#1a56db" stroke-dasharray="364" stroke-dashoffset="364">
+                                            </circle>
+                                        </svg>
+                                        <div class="circle-text">
+                                            <h2 class="text-primary" style="font-size:1.4rem;">84%</h2>
+                                            <span>Match Score</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-muted small mb-0">Alignment with job requirements</p>
+                                </div>
+                                <div class="col-6">
+                                    <div class="circle-progress mb-2" style="width:120px;height:120px;">
+                                        <svg viewBox="0 0 140 140">
+                                            <circle class="bg-ring" cx="70" cy="70" r="58"></circle>
+                                            <circle class="progress-ring" id="readinessRing" cx="70" cy="70" r="58"
+                                                stroke="#16a34a" stroke-dasharray="364" stroke-dashoffset="364">
+                                            </circle>
+                                        </svg>
+                                        <div class="circle-text">
+                                            <h2 class="text-success" style="font-size:1.4rem;">91%</h2>
+                                            <span>Readiness</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-muted small mb-0">Prepared for interview stage</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <!-- AI HIRING RECOMMENDATION -->
+                <div class="col-xl-5">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-patch-check-fill"></i> AI Hiring Recommendation</h6>
+                        </div>
+                        <div class="card-body-custom">
+                            <div class="recommend-banner hire mb-3">
+                                <i class="bi bi-hand-thumbs-up-fill"></i>
+                                <h4>Hire</h4>
+                                <small>Confidence Level: High (84%)</small>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                The candidate meets core job requirements with strong technical alignment.
+                                Recommended to proceed to the next interview stage for further validation.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CURRENT INTERVIEW STAGE (type + status merged) -->
+                <div class="col-xl-7">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-diagram-3-fill"></i> Current Interview Stage</h6>
+                        </div>
+                        <div class="card-body-custom">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <span class="text-muted small">Overall Status</span>
+                                <span class="status-badge status-scheduled"><i
+                                        class="bi bi-calendar-check me-1"></i>Scheduled</span>
+                            </div>
+                            <div class="interview-type-badge recommended mb-2">
+                                <i class="bi bi-cpu-fill"></i> Technical Interview
+                                <span class="tag">Recommended Next</span>
+                            </div>
+                            <p class="text-muted small mb-0">HR round is complete. Full round-by-round schedule and
+                                history is available in the table below.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <!-- SKILLS ASSESSMENT SUMMARY -->
+                <div class="col-xl-6">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-bar-chart-steps"></i> Skills Assessment Summary</h6>
+                        </div>
+                        <div class="card-body-custom">
+                            <div class="skill-progress-item">
+                                <div class="lbl"><span>Technical Skills</span><span>88%</span></div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-primary" style="width:88%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-progress-item">
+                                <div class="lbl"><span>Communication</span><span>82%</span></div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" style="width:82%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-progress-item">
+                                <div class="lbl"><span>Leadership</span><span>74%</span></div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" style="width:74%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-progress-item">
+                                <div class="lbl"><span>Problem Solving</span><span>90%</span></div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width:90%"></div>
+                                </div>
+                            </div>
+                            <div class="skill-progress-item mb-0">
+                                <div class="lbl"><span>Soft Skills</span><span>79%</span></div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-primary" style="width:79%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STRENGTHS + AREAS TO VERIFY -->
+                <div class="col-xl-6">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-shield-check"></i> Strengths &amp; Areas to Verify</h6>
+                        </div>
+                        <div class="card-body-custom">
+                            <h6 class="fw-bold small text-uppercase text-muted mb-2">Candidate Strengths</h6>
+                            <ul class="list-unstyled list-check mb-3">
+                                <li><i class="bi bi-check-circle-fill"></i> Strong data analysis and statistical
+                                    reasoning</li>
+                                <li><i class="bi bi-check-circle-fill"></i> Clear, concise written communication in
+                                    resume</li>
+                                <li><i class="bi bi-check-circle-fill"></i> Demonstrated ownership of past projects
+                                </li>
+                            </ul>
+
+                            <h6 class="fw-bold small text-uppercase text-muted mb-2">Areas to Verify During Interview
+                            </h6>
+                            <ul class="list-unstyled list-verify mb-0">
+                                <li><i class="bi bi-exclamation-circle-fill"></i> Depth of hands-on experience with
+                                    cloud platforms (AWS)</li>
+                                <li><i class="bi bi-exclamation-circle-fill"></i> Real-world leadership exposure in
+                                    team settings</li>
+                                <li><i class="bi bi-exclamation-circle-fill"></i> Familiarity with Agile/Scrum
+                                    delivery cycles</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <!-- INTERVIEW SCHEDULE DETAILS -->
+                <div class="col-xl-7">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-calendar-event-fill"></i> Interview Schedule Details</h6>
+                            <button class="action-btn btn-outline-custom" data-bs-toggle="modal"
+                                data-bs-target="#scheduleModal" style="padding:7px 14px;font-size:.8rem;">
+                                <i class="bi bi-plus-lg"></i> Add Schedule
+                            </button>
+                        </div>
+                        <div class="card-body-custom pt-0">
+                            <div class="table-responsive">
+                                <table class="table schedule-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Round</th>
+                                            <th>Date</th>
+                                            <th>Time</th>
+                                            <th>Mode</th>
+                                            <th>Interviewer</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="fw-semibold">HR Round</td>
+                                            <td>July 02, 2026</td>
+                                            <td>11:00 AM</td>
+                                            <td><i class="bi bi-camera-video-fill text-primary me-1"></i>Video Call
+                                            </td>
+                                            <td>Priya Sharma</td>
+                                            <td><span class="status-badge status-completed">Completed</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold">Technical Round</td>
+                                            <td>July 14, 2026</td>
+                                            <td>3:30 PM</td>
+                                            <td><i class="bi bi-camera-video-fill text-primary me-1"></i>Video Call
+                                            </td>
+                                            <td>Rohan Mehta</td>
+                                            <td><span class="status-badge status-scheduled">Scheduled</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold">Coding Test</td>
+                                            <td>&mdash;</td>
+                                            <td>&mdash;</td>
+                                            <td><i class="bi bi-laptop text-muted me-1"></i>Online Platform</td>
+                                            <td>Auto-Proctored</td>
+                                            <td><span class="status-badge status-pending">Pending</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold">Final Round</td>
+                                            <td>&mdash;</td>
+                                            <td>&mdash;</td>
+                                            <td><i class="bi bi-building text-muted me-1"></i>In-Person</td>
+                                            <td>Not Assigned</td>
+                                            <td><span class="status-badge status-cancelled">Not Scheduled</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RECRUITER NOTES -->
+                <div class="col-xl-5">
+                    <div class="card h-100">
+                        <div class="card-header-custom">
+                            <h6><i class="bi bi-journal-text"></i> Recruiter Notes</h6>
+                        </div>
+                        <div class="card-body-custom">
+                            <div class="note-chip">
+                                Candidate was articulate and confident during the HR round. Good culture fit.
+                                <div class="meta">Priya Sharma &middot; July 02, 2026</div>
+                            </div>
+                            <div class="note-chip">
+                                Recommend probing AWS depth and real ownership of past ML pipelines in the technical
+                                round.
+                                <div class="meta">Rohan Mehta &middot; July 05, 2026</div>
+                            </div>
+                            <textarea class="form-control notes-textarea mt-2" rows="3"
+                                placeholder="Add a note about this candidate..."></textarea>
+                            <button class="action-btn btn-primary-custom mt-2 w-100 justify-content-center"
+                                style="padding:9px;font-size:.85rem;">
+                                <i class="bi bi-send-fill"></i> Save Note
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="card mb-4">
+                <div class="card-body-custom d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
+                    <button class="action-btn btn-primary-custom" data-bs-toggle="modal"
+                        data-bs-target="#scheduleModal">
+                        <i class="bi bi-calendar-plus-fill"></i> Schedule Interview
+                    </button>
+                    <button class="action-btn btn-success-custom" data-bs-toggle="modal"
+                        data-bs-target="#invitationModal">
+                        <i class="bi bi-envelope-paper-fill"></i> Send Interview Invitation
+                    </button>
+                    <button class="action-btn btn-outline-custom">
+                        <i class="bi bi-file-earmark-arrow-down-fill"></i> Download Recommendation Report
+                    </button>
+                   
+                </div>
+            </div>
+
+        </div>
+        <!-- ===================== END INTERVIEW RECOMMENDATION PAGE CONTENT ===================== -->
+
+    </div>
+
+    <!-- ===================== SCHEDULE INTERVIEW MODAL ===================== -->
+    <div class="modal fade" id="scheduleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-calendar-plus-fill text-primary me-2"></i>Schedule
+                        Interview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Interview Round</label>
+                            <select class="form-select">
+                                <option>Technical Interview</option>
+                                <option>Coding Test</option>
+                                <option>Final Interview</option>
+                                <option>HR Interview</option>
+                            </select>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Date</label>
+                                <input type="date" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Time</label>
+                                <input type="time" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-0">
+                            <div class="col-md-6">
+                                <label class="form-label">Interview Mode</label>
+                                <select class="form-select">
+                                    <option>Video Call</option>
+                                    <option>In-Person</option>
+                                    <option>Phone Call</option>
+                                    <option>Online Platform</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Interviewer</label>
+                                <input type="text" class="form-control" placeholder="e.g. Rohan Mehta">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="action-btn btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
+                    <button class="action-btn btn-primary-custom" data-bs-dismiss="modal"><i
+                            class="bi bi-check-lg"></i> Confirm Schedule</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== SEND INVITATION MODAL ===================== -->
+    <div class="modal fade" id="invitationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-envelope-paper-fill text-success me-2"></i>Send
+                        Interview Invitation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Send To</label>
+                        <input type="email" class="form-control" value="sarah.anderson@email.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        <input type="text" class="form-control"
+                            value="Interview Invitation - Senior Data Analyst at HYRIZON">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control notes-textarea" rows="5">Dear Sarah,
+
+We are pleased to invite you for the Technical Interview round for the Senior Data Analyst position. Please find the schedule details attached.
+
+Best regards,
+HYRIZON Recruitment Team</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="action-btn btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
+                    <button class="action-btn btn-success-custom" data-bs-dismiss="modal"><i
+                            class="bi bi-send-fill"></i> Send Invitation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>const sidebar = document.getElementById('sidebar'); const mainContent = document.getElementById('main-content');
+     const toggleSidebarButton = document.getElementById('toggleSidebar');
+      const sidebarOverlay = document.getElementById('sidebarOverlay'); 
+      const sidebarStateKey = 'hyrizon-sidebar-state'; function closeMobileSidebar() { sidebar.classList.remove('show');
+       sidebarOverlay.classList.remove('show'); document.body.classList.remove('sidebar-open'); } function openMobileSidebar() { sidebar.classList.add('show'); 
+       sidebarOverlay.classList.add('show'); document.body.classList.add('sidebar-open'); }
+        function setDesktopSidebarState(isCollapsed) { sidebar.classList.toggle('collapsed', isCollapsed); mainContent.classList.toggle('expanded', isCollapsed);
+         toggleSidebarButton.setAttribute('aria-expanded', String(!isCollapsed)); localStorage.setItem(sidebarStateKey, isCollapsed ? 'collapsed' : 'expanded'); } 
+         function applySavedSidebarState() { const saved = localStorage.getItem(sidebarStateKey); if (window.innerWidth >= 992) setDesktopSidebarState(saved === 'collapsed'); }
+          function handleSidebarToggle() { if (window.innerWidth >= 992) { const isCollapsed = !sidebar.classList.contains('collapsed'); setDesktopSidebarState(isCollapsed); } 
+          else { if (sidebar.classList.contains('show')) closeMobileSidebar(); else openMobileSidebar(); } } toggleSidebarButton?.addEventListener('click', handleSidebarToggle); sidebarOverlay?.addEventListener('click', closeMobileSidebar);
+     window.addEventListener('resize', function () { if (window.innerWidth >= 992) { sidebar.classList.remove('show'); sidebarOverlay.classList.remove('show'); document.body.classList.remove('sidebar-open'); applySavedSidebarState(); } 
+     else { sidebar.classList.remove('collapsed'); mainContent.classList.remove('expanded'); toggleSidebarButton.setAttribute('aria-expanded', 'false'); } }); applySavedSidebarState(); if (window.innerWidth < 992) closeMobileSidebar();</script>
+
+    <script>
+        // Circular progress animations for AI Match & Readiness scores
+        window.addEventListener('DOMContentLoaded', function () {
+            const radius = 58;
+            const circumference = 2 * Math.PI * radius;
+
+            function animateRing(id, percent) {
+                const ring = document.getElementById(id);
+                ring.style.strokeDasharray = circumference;
+                const offset = circumference - (percent / 100) * circumference;
+                setTimeout(() => { ring.style.strokeDashoffset = offset; }, 200);
+            }
+
+            animateRing('matchRing', 84);
+            animateRing('readinessRing', 91);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1016 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candidates | AI Resume Screening & Interview Recommendation System</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --brand-blue: #0d5cd7;
+      --brand-blue-dark: #0a3fa0;
+      --brand-blue-soft: #eaf1ff;
+      --brand-navy: #0b1f3a;
+      --surface: #f5f8fd;
+      --border: #e7edf6;
+      --text: #1c2b3a;
+      --muted: #5b6b82;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: var(--surface);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow-x: hidden;
+    }
+
+    body { min-height: 100vh; }
+
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+      background: var(--surface);
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 1040;
+      padding: 1rem 0 1.5rem;
+      background: linear-gradient(180deg, var(--brand-navy), #102848);
+      color: #fff;
+      box-shadow: 0 0 32px rgba(8, 20, 43, 0.16);
+      transform: translateX(0);
+      transition: transform 0.25s ease;
+    }
+
+    .sidebar .nav-link {
+      color: #d8e4f3;
+      padding: 0.78rem 1.1rem;
+      border-radius: 0.8rem;
+      margin: 0.18rem 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      transform: translateX(2px);
+    }
+
+    .sidebar .nav-link i {
+      width: 20px;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .page-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      margin-left: 250px;
+      transition: margin-left 0.25s ease;
+    }
+
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0.95rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      box-shadow: 0 2px 16px rgba(13, 92, 215, 0.04);
+    }
+
+    .topbar .search-group {
+      max-width: 320px;
+      width: min(100%, 320px);
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 0.9rem 0.9rem 1.4rem;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    .main-content .container-fluid {
+      max-width: 100%;
+      padding-left: 0.15rem;
+      padding-right: 0.15rem;
+    }
+
+    .navbar-brand-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--brand-blue), var(--brand-blue-dark));
+      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.1rem;
+    }
+
+    .text-brand { color: var(--brand-blue) !important; }
+    .bg-brand { background-color: var(--brand-blue) !important; }
+    .bg-brand-soft { background-color: var(--brand-blue-soft) !important; }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 8px 25px rgba(13, 92, 215, 0.06);
+    }
+
+    .shadow-soft { box-shadow: 0 8px 25px rgba(13, 92, 215, 0.06); }
+
+    .stat-icon-wrap {
+      width: 46px; height: 46px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+    }
+
+    .avatar-sm { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
+    .avatar-lg { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; }
+    .table > :not(caption) > * > * { vertical-align: middle; }
+    .table thead th {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--muted); background-color: var(--brand-blue-soft); border-bottom: none;
+    }
+    .badge-skill {
+      background: var(--brand-blue-soft);
+      color: var(--brand-blue-dark);
+      font-weight: 500;
+      border-radius: 999px;
+      padding: 0.35rem 0.65rem;
+    }
+    .progress { height: 8px; border-radius: 20px; background-color: #e7edf6; }
+    .progress-bar-animated-fill { transition: width 1.2s ease; }
+    .timeline { position: relative; padding-left: 2rem; }
+    .timeline::before {
+      content: ''; position: absolute; left: 9px; top: 4px; bottom: 4px; width: 2px; background: #dce6f7;
+    }
+    .timeline-item { position: relative; padding-bottom: 1.3rem; }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-dot {
+      position: absolute; left: -2rem; top: 2px; width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #fff;
+    }
+    .chart-placeholder { height: 220px; }
+    .filter-card .form-label { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+    .kpi-trend { font-size: 0.75rem; font-weight: 600; }
+
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 17, 33, 0.48);
+      z-index: 1035;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    .sidebar-backdrop.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    body.sidebar-open {
+      overflow: hidden;
+    }
+
+    body.sidebar-collapsed .page-content {
+      margin-left: 0;
+    }
+
+    body.sidebar-collapsed .sidebar {
+      transform: translateX(-100%);
+    }
+
+    @media (max-width: 991.98px) {
+      .page-content {
+        margin-left: 0;
+      }
+      .sidebar {
+        transform: translateX(-100%);
+        box-shadow: 0 0 30px rgba(0,0,0,0.18);
+      }
+      .sidebar.show {
+        transform: translateX(0);
+      }
+      .main-content { padding: 1rem; }
+      .topbar { padding: 0.85rem 1rem; }
+    }
+
+    @media (max-width: 767.98px) {
+      .topbar { flex-wrap: wrap; }
+      .topbar .search-group { max-width: none; width: 100%; }
+      .table-responsive { font-size: 0.85rem; }
+      .main-content { padding: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <span class="d-flex align-items-center gap-2">
+          <img src="../static/images/logo2.png" alt="Logo" width="48" height="48" class="rounded-circle" />
+          <span>Hyrizon</span>
+        </span>
+      </div>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+        <a class="nav-link" href="{{ url_for('resume') }}"><i class="bi bi-file-earmark-text"></i><span>Upload Resume</span></a>
+        <a class="nav-link" href="{{ url_for('job') }}"><i class="bi bi-briefcase"></i><span>Job Listing</span></a>
+        <a class="nav-link active" href="{{ url_for('candidates') }}"><i class="bi bi-people"></i><span>Candidates</span></a>
+        <a class="nav-link" href="{{ url_for('resume') }}"><i class="bi bi-cpu"></i><span>Resume Analysis</span></a>
+        <a class="nav-link" href="{{ url_for('interview') }}"><i class="bi bi-bullseye"></i><span>Interview Recommendation</span></a>
+        <a class="nav-link" href="{{ url_for('analytics') }}"><i class="bi bi-bar-chart"></i><span>Analytics</span></a>
+        <a class="nav-link" href="{{ url_for('reports') }}"><i class="bi bi-folder2-open"></i><span>Reports</span></a>
+        <a class="nav-link" href="{{ url_for('settings') }}"><i class="bi bi-gear"></i><span>Settings</span></a>
+      </nav>
+    </aside>
+
+    <div class="page-content">
+   <header class="topbar d-flex align-items-center justify-content-between">
+
+    <!-- Left Section -->
+    <div class="d-flex align-items-center gap-3 flex-grow-1">
+
+        <!-- Hamburger -->
+        <button class="btn btn-outline-secondary" id="toggleSidebar" type="button">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+
+        <!-- Search -->
+        <div class="input-group" style="max-width:500px;">
+            <span class="input-group-text bg-white">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text"
+                   class="form-control"
+                   placeholder="Search candidate, skill or email">
+        </div>
+
+    </div>
+
+    <!-- Right Section -->
+    <div class="d-flex align-items-center gap-3">
+
+        <button class="btn btn-light position-relative">
+            <i class="bi bi-bell"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                  style="font-size:.55rem;">3</span>
+        </button>
+
+        <div class="d-flex align-items-center gap-2">
+            <img src="../static/images/port.JPG"
+                 class="avatar-sm"
+                 alt="Admin">
+
+            <div class="d-none d-sm-block">
+                <div class="fw-semibold small">Admin</div>
+                
+            </div>
+        </div>
+
+    </div>
+
+</header>
+
+      <main class="main-content">
+        <div class="container-fluid px-0">
+          <div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+            <div>
+              <h3 class="fw-bold mb-1">Candidates</h3>
+              <nav aria-label="breadcrumb">
+                
+              </nav>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <button class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Import a resume file (PDF/DOCX)">
+                <i class="bi bi-upload me-1"></i> Import Resume
+              </button>
+              <button class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="Export candidate list as CSV/Excel">
+                <i class="bi bi-download me-1"></i> Export Data
+              </button>
+              <button class="btn btn-primary bg-brand border-0" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                <i class="bi bi-plus-lg me-1"></i> Add Candidate
+              </button>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4 col-xl-2">
+              <div class="card shadow-soft h-100">
+                <div class="card-body">
+                  <div class="stat-icon-wrap bg-brand-soft text-brand mb-2"><i class="bi bi-people-fill"></i></div>
+                  <h4 class="fw-bold mb-0">250</h4>
+                  <div class="text-muted small">Total Candidates</div>
+                  <div class="kpi-trend text-success mt-1"><i class="bi bi-arrow-up-short"></i>12% this month</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <div class="card shadow-soft h-100">
+                <div class="card-body">
+                  <div class="stat-icon-wrap bg-success bg-opacity-10 text-success mb-2"><i class="bi bi-star-fill"></i></div>
+                  <h4 class="fw-bold mb-0">64</h4>
+                  <div class="text-muted small">Shortlisted</div>
+                  <div class="kpi-trend text-success mt-1"><i class="bi bi-arrow-up-short"></i>8% this month</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <div class="card shadow-soft h-100">
+                <div class="card-body">
+                  <div class="stat-icon-wrap bg-warning bg-opacity-10 text-warning mb-2"><i class="bi bi-hourglass-split"></i></div>
+                  <h4 class="fw-bold mb-0">88</h4>
+                  <div class="text-muted small">Pending Review</div>
+                  <div class="kpi-trend text-danger mt-1"><i class="bi bi-arrow-down-short"></i>3% this week</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <div class="card shadow-soft h-100">
+                <div class="card-body">
+                  <div class="stat-icon-wrap bg-info bg-opacity-10 text-info mb-2"><i class="bi bi-calendar-event-fill"></i></div>
+                  <h4 class="fw-bold mb-0">37</h4>
+                  <div class="text-muted small">Interview Scheduled</div>
+                  <div class="kpi-trend text-success mt-1"><i class="bi bi-arrow-up-short"></i>5% this month</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <div class="card shadow-soft h-100">
+                <div class="card-body">
+                  <div class="stat-icon-wrap bg-danger bg-opacity-10 text-danger mb-2"><i class="bi bi-x-circle-fill"></i></div>
+                  <h4 class="fw-bold mb-0">61</h4>
+                  <div class="text-muted small">Rejected</div>
+                  <div class="kpi-trend text-muted mt-1"><i class="bi bi-dash"></i>steady</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <div class="card shadow-soft h-100">
+                <div class="card-body">
+                  <div class="stat-icon-wrap bg-primary bg-opacity-10 text-primary mb-2"><i class="bi bi-graph-up-arrow"></i></div>
+                  <h4 class="fw-bold mb-0">76.4%</h4>
+                  <div class="text-muted small">Avg. AI Resume Score</div>
+                  <div class="kpi-trend text-success mt-1"><i class="bi bi-arrow-up-short"></i>2.1 pts</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-4">
+            <div class="col-12">
+              <div class="card shadow-soft filter-card mb-4">
+                <div class="card-header bg-white border-0 pt-3 pb-0">
+                  <h6 class="fw-bold mb-0"><i class="bi bi-funnel me-2 text-brand"></i>Search &amp; Filter Candidates</h6>
+                </div>
+                <div class="card-body">
+                  <form class="row g-3">
+                    <div class="col-md-4">
+                      <label class="form-label">Search Candidate</label>
+                      <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Name, email or skill..." />
+                      </div>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Job Position</label>
+                      <select class="form-select">
+                        <option selected>All Positions</option>
+                        <option>Backend Developer</option>
+                        <option>Frontend Developer</option>
+                        <option>Data Scientist</option>
+                        <option>ML Engineer</option>
+                        <option>UI/UX Designer</option>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Experience</label>
+                      <select class="form-select">
+                        <option selected>Any Experience</option>
+                        <option>0 - 1 Years</option>
+                        <option>1 - 3 Years</option>
+                        <option>3 - 5 Years</option>
+                        <option>5+ Years</option>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Qualification</label>
+                      <select class="form-select">
+                        <option selected>Any Qualification</option>
+                        <option>Bachelor's</option>
+                        <option>Master's</option>
+                        <option>PhD</option>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">Resume Status</label>
+                      <select class="form-select">
+                        <option selected>All Status</option>
+                        <option>Pending</option>
+                        <option>Shortlisted</option>
+                        <option>Interview Scheduled</option>
+                        <option>Selected</option>
+                        <option>Rejected</option>
+                      </select>
+                    </div>
+                    <div class="col-md-2">
+                      <label class="form-label">AI Score</label>
+                      <select class="form-select">
+                        <option selected>Any Score</option>
+                        <option>90% and above</option>
+                        <option>75% - 89%</option>
+                        <option>50% - 74%</option>
+                        <option>Below 50%</option>
+                      </select>
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label">Date Applied</label>
+                      <input type="date" class="form-control" />
+                    </div>
+                    <div class="col-md-5"></div>
+                    <div class="col-md-2 d-flex align-items-end gap-2">
+                      <button type="reset" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                      <button type="submit" class="btn btn-primary bg-brand border-0 w-100"><i class="bi bi-check2 me-1"></i>Apply</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <div class="card shadow-soft mb-4">
+                <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
+                  <h6 class="fw-bold mb-0"><i class="bi bi-table me-2 text-brand"></i>Candidate List</h6>
+                  <span class="badge bg-brand-soft text-brand">250 Candidates</span>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Candidate</th>
+                          <th>Contact</th>
+                          <th>Position</th>
+                          <th>Experience</th>
+                          <th>Education</th>
+                          <th>Skills</th>
+                          <th style="min-width: 130px;">Resume Match</th>
+                          <th>Recommendation</th>
+                          <th>Status</th>
+                          <th>Applied</th>
+                          <th class="text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><img src="../static/images/sappu.png"" class="avatar-sm" alt="profile" /></td>
+                          <td><span class="fw-semibold">Sapana Khadka</span></td>
+                          <td>
+                            <div class="small">sapanakhadka@email.com</div>
+                            <div class="small text-muted">+977-9860567812</div>
+                          </td>
+                          <td>Backend Developer</td>
+                          <td>3 Years</td>
+                          <td>B.Sc. Computer Science</td>
+                          <td>
+                            <span class="badge badge-skill">Python</span>
+                            <span class="badge badge-skill">Flask</span>
+                            <span class="badge badge-skill">SQL</span>
+                          </td>
+                          <td>
+                            <div class="d-flex justify-content-between small mb-1"><span>92%</span></div>
+                            <div class="progress"><div class="progress-bar progress-bar-animated-fill bg-success" style="width:92%"></div></div>
+                          </td>
+                          <td><span class="badge bg-success">Highly Recommended</span></td>
+                          <td><span class="badge bg-primary">Shortlisted</span></td>
+                          <td class="small">Jul 02, 2026</td>
+                          <td class="text-center text-nowrap">
+                            <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#candidateDetailsModal" title="View Profile"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Resume Analysis"><i class="bi bi-file-earmark-bar-graph"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Interview Recommendation"><i class="bi bi-clipboard-check"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Download Resume"><i class="bi bi-download"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Edit Candidate"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-light text-danger" data-bs-toggle="tooltip" title="Delete Candidate"><i class="bi bi-trash"></i></button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><img src="../static/images/prem.png"" class="avatar-sm" alt="profile" /></td>
+                          <td><span class="fw-semibold">Prem Prassad Devkota</span></td>
+                          <td>
+                            <div class="small">premdev@email.com</div>
+                            <div class="small text-muted">+977-9866207356</div>
+                          </td>
+                          <td>Data Scientist</td>
+                          <td>2 Years</td>
+                          <td>M.Sc. Data Science</td>
+                          <td>
+                            <span class="badge badge-skill">Python</span>
+                            <span class="badge badge-skill">ML</span>
+                            <span class="badge badge-skill">Pandas</span>
+                          </td>
+                          <td>
+                            <div class="d-flex justify-content-between small mb-1"><span>85%</span></div>
+                            <div class="progress"><div class="progress-bar progress-bar-animated-fill bg-success" style="width:85%"></div></div>
+                          </td>
+                          <td><span class="badge bg-success">Highly Recommended</span></td>
+                          <td><span class="badge bg-info text-dark">Interview Scheduled</span></td>
+                          <td class="small">Jul 01, 2026</td>
+                          <td class="text-center text-nowrap">
+                            <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#candidateDetailsModal" title="View Profile"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Resume Analysis"><i class="bi bi-file-earmark-bar-graph"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Interview Recommendation"><i class="bi bi-clipboard-check"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Download Resume"><i class="bi bi-download"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Edit Candidate"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-light text-danger" data-bs-toggle="tooltip" title="Delete Candidate"><i class="bi bi-trash"></i></button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><img src="../static/images/deepika.png"" class="avatar-sm" alt="profile" /></td>
+                          <td><span class="fw-semibold">Deepika Chand</span></td>
+                          <td>
+                            <div class="small">deepika@email.com</div>
+                            <div class="small text-muted">+977-9763454455</div>
+                          </td>
+                          <td>Frontend Developer</td>
+                          <td>1 Year</td>
+                          <td>B.Sc. IT</td>
+                          <td>
+                            <span class="badge badge-skill">JavaScript</span>
+                            <span class="badge badge-skill">React</span>
+                            <span class="badge badge-skill">CSS</span>
+                          </td>
+                          <td>
+                            <div class="d-flex justify-content-between small mb-1"><span>68%</span></div>
+                            <div class="progress"><div class="progress-bar progress-bar-animated-fill bg-warning" style="width:68%"></div></div>
+                          </td>
+                          <td><span class="badge bg-warning text-dark">Needs Review</span></td>
+                          <td><span class="badge bg-warning text-dark">Pending</span></td>
+                          <td class="small">Jun 29, 2026</td>
+                          <td class="text-center text-nowrap">
+                            <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#candidateDetailsModal" title="View Profile"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Resume Analysis"><i class="bi bi-file-earmark-bar-graph"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Interview Recommendation"><i class="bi bi-clipboard-check"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Download Resume"><i class="bi bi-download"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Edit Candidate"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-light text-danger" data-bs-toggle="tooltip" title="Delete Candidate"><i class="bi bi-trash"></i></button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><img src="../static/images/riya.png"" class="avatar-sm" alt="profile" /></td>
+                          <td><span class="fw-semibold">Riya Joshi</span></td>
+                          <td>
+                            <div class="small">riyavedi@email.com</div>
+                            <div class="small text-muted">+977-9867872211</div>
+                          </td>
+                          <td>ML Engineer</td>
+                          <td>4 Years</td>
+                          <td>M.Sc. AI &amp; ML</td>
+                          <td>
+                            <span class="badge badge-skill">TensorFlow</span>
+                            <span class="badge badge-skill">Python</span>
+                            <span class="badge badge-skill">Docker</span>
+                          </td>
+                          <td>
+                            <div class="d-flex justify-content-between small mb-1"><span>96%</span></div>
+                            <div class="progress"><div class="progress-bar progress-bar-animated-fill bg-success" style="width:96%"></div></div>
+                          </td>
+                          <td><span class="badge bg-success">Highly Recommended</span></td>
+                          <td><span class="badge bg-success">Selected</span></td>
+                          <td class="small">Jun 27, 2026</td>
+                          <td class="text-center text-nowrap">
+                            <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#candidateDetailsModal" title="View Profile"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Resume Analysis"><i class="bi bi-file-earmark-bar-graph"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Interview Recommendation"><i class="bi bi-clipboard-check"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Download Resume"><i class="bi bi-download"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Edit Candidate"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-light text-danger" data-bs-toggle="tooltip" title="Delete Candidate"><i class="bi bi-trash"></i></button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><img src="../static/images/basu.png"" class="avatar-sm" alt="profile" /></td>
+                          <td><span class="fw-semibold">Basu JI</span></td>
+                          <td>
+                            <div class="small">mrbasu@email.com</div>
+                            <div class="small text-muted">+977-9858675412</div>
+                          </td>
+                          <td>UI/UX Designer</td>
+                          <td>2 Years</td>
+                          <td>BFA Design</td>
+                          <td>
+                            <span class="badge badge-skill">Figma</span>
+                            <span class="badge badge-skill">UX Research</span>
+                          </td>
+                          <td>
+                            <div class="d-flex justify-content-between small mb-1"><span>41%</span></div>
+                            <div class="progress"><div class="progress-bar progress-bar-animated-fill bg-danger" style="width:41%"></div></div>
+                          </td>
+                          <td><span class="badge bg-danger">Not Recommended</span></td>
+                          <td><span class="badge bg-secondary">Rejected</span></td>
+                          <td class="small">Jun 20, 2026</td>
+                          <td class="text-center text-nowrap">
+                            <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#candidateDetailsModal" title="View Profile"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Resume Analysis"><i class="bi bi-file-earmark-bar-graph"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Interview Recommendation"><i class="bi bi-clipboard-check"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Download Resume"><i class="bi bi-download"></i></button>
+                            <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Edit Candidate"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-light text-danger" data-bs-toggle="tooltip" title="Delete Candidate"><i class="bi bi-trash"></i></button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="card-footer bg-white d-flex flex-wrap justify-content-between align-items-center py-3">
+                  <span class="text-muted small">Showing 1–5 of 250 Candidates</span>
+                  <nav aria-label="Candidate pagination">
+                    <ul class="pagination pagination-sm mb-0">
+                      <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                      <li class="page-item active"><a class="page-link bg-brand border-brand" href="#">1</a></li>
+                      <li class="page-item"><a class="page-link" href="#">2</a></li>
+                      <li class="page-item"><a class="page-link" href="#">3</a></li>
+                      <li class="page-item"><a class="page-link" href="#">4</a></li>
+                      <li class="page-item"><a class="page-link" href="#">5</a></li>
+                      <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <footer class="border-top bg-white py-3 px-3 px-lg-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center small text-muted gap-2">
+      <div>Showing <b>250</b> total candidates</div>
+      <div>System Version <span class="badge bg-brand-soft text-brand">v1.2.0</span></div>
+      <div>&copy; 2026 ScreenAI ATS — AI Resume Screening &amp; Interview Recommendation System</div>
+    </div>
+  </footer>
+
+  <div class="modal fade" id="candidateDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-brand-soft">
+          <div class="d-flex align-items-center gap-3">
+            <img src="https://i.pravatar.cc/120?img=32" class="avatar-lg" alt="Candidate photo" />
+            <div>
+              <h5 class="modal-title fw-bold mb-0">Aarav Sharma</h5>
+              <div class="text-muted small">Applied for Backend Developer &bull; Applied Jul 02, 2026</div>
+              <span class="badge bg-success mt-1">Highly Recommended</span>
+              <span class="badge bg-primary mt-1">Shortlisted</span>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-personal" type="button">Personal</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-resume" type="button">Resume</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-background" type="button">Education &amp; Experience</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-skills" type="button">Skills</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ai" type="button">AI Analysis</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-interview" type="button">Interview Rec.</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-notes" type="button">HR Notes</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-timeline" type="button">Timeline</button></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="tab-personal">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Full Name</span><span class="fw-semibold">Aarav Sharma</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Email</span><span class="fw-semibold">aarav.sharma@email.com</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Phone</span><span class="fw-semibold">+977-984-000-1122</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Address</span><span class="fw-semibold">Kathmandu, Nepal</span></li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">LinkedIn</span><a href="#" class="text-brand text-decoration-none">linkedin.com/in/aaravsharma</a></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">GitHub</span><a href="#" class="text-brand text-decoration-none">github.com/aaravsharma</a></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Portfolio</span><a href="#" class="text-brand text-decoration-none">aaravsharma.dev</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="tab-resume">
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <div class="border rounded-3 d-flex align-items-center justify-content-center bg-light" style="height: 280px;">
+                    <div class="text-center text-muted">
+                      <i class="bi bi-file-earmark-pdf" style="font-size: 2.5rem;"></i>
+                      <div class="small mt-2">Resume Preview Placeholder</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <p class="small text-muted mb-1">Resume Upload Date</p>
+                  <p class="fw-semibold">July 02, 2026</p>
+                  <button class="btn btn-primary bg-brand border-0 w-100"><i class="bi bi-download me-1"></i>Download Resume</button>
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="tab-background">
+              <h6 class="fw-bold mb-2"><i class="bi bi-mortarboard me-2 text-brand"></i>Education</h6>
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      <h6 class="mb-1">B.Sc. Computer Science</h6>
+                      <p class="text-muted small mb-1">Tribhuvan University</p>
+                      <p class="small mb-0">Graduated: 2022 &bull; GPA: 3.72 / 4.0</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      <h6 class="mb-1">Higher Secondary (Science)</h6>
+                      <p class="text-muted small mb-1">Kathmandu Model College</p>
+                      <p class="small mb-0">Graduated: 2018 &bull; GPA: 3.85 / 4.0</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <h6 class="fw-bold mb-2"><i class="bi bi-briefcase me-2 text-brand"></i>Experience</h6>
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between">
+                    <h6 class="mb-1">Backend Developer</h6>
+                    <span class="text-muted small">3 Years</span>
+                  </div>
+                  <p class="text-muted small mb-2">CloudNep Technologies</p>
+                  <p class="small mb-0">Built and maintained REST APIs, optimized database queries, and led migration of legacy services to a microservice architecture.</p>
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="tab-skills">
+              <span class="badge badge-skill fs-6 me-2 mb-2 p-2">Python</span>
+              <span class="badge badge-skill fs-6 me-2 mb-2 p-2">Flask</span>
+              <span class="badge badge-skill fs-6 me-2 mb-2 p-2">Bootstrap</span>
+              <span class="badge badge-skill fs-6 me-2 mb-2 p-2">Machine Learning</span>
+              <span class="badge badge-skill fs-6 me-2 mb-2 p-2">SQL</span>
+              <span class="badge badge-skill fs-6 me-2 mb-2 p-2">Git</span>
+              <span class="badge badge-skill fs-6 me-2 mb-2 p-2">Docker</span>
+            </div>
+            <div class="tab-pane fade" id="tab-ai">
+              <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                  <p class="small text-muted mb-1">Resume Match Score</p>
+                  <div class="progress mb-1"><div class="progress-bar bg-success" style="width:92%"></div></div>
+                  <span class="small fw-semibold">92%</span>
+                </div>
+                <div class="col-md-4">
+                  <p class="small text-muted mb-1">ATS Compatibility</p>
+                  <div class="progress mb-1"><div class="progress-bar bg-success" style="width:88%"></div></div>
+                  <span class="small fw-semibold">88%</span>
+                </div>
+                <div class="col-md-4">
+                  <p class="small text-muted mb-1">Keyword Match</p>
+                  <div class="progress mb-1"><div class="progress-bar bg-info" style="width:79%"></div></div>
+                  <span class="small fw-semibold">79%</span>
+                </div>
+              </div>
+              <div class="alert alert-danger py-2"><i class="bi bi-exclamation-triangle me-2"></i><b>Missing Skills:</b> Kubernetes, GraphQL</div>
+              <div class="alert alert-success py-2"><i class="bi bi-check-circle me-2"></i><b>Strengths:</b> Strong backend fundamentals, clean API design, consistent GitHub activity</div>
+              <div class="alert alert-warning py-2"><i class="bi bi-exclamation-circle me-2"></i><b>Weaknesses:</b> Limited cloud deployment experience</div>
+              <div class="alert alert-info py-2 mb-0"><i class="bi bi-lightbulb me-2"></i><b>Improvement Suggestions:</b> Add measurable project outcomes and highlight any DevOps/cloud exposure.</div>
+            </div>
+            <div class="tab-pane fade" id="tab-interview">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Recommended Level</span><span class="fw-semibold">Mid-Level</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Technical Round</span><span class="badge bg-success">Required</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">HR Round</span><span class="badge bg-success">Required</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Coding Round</span><span class="badge bg-success">Required</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Behavioral Round</span><span class="badge bg-secondary">Optional</span></li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Confidence Score</span><span class="fw-semibold">91%</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Expected Difficulty</span><span class="fw-semibold">Moderate</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Est. Duration</span><span class="fw-semibold">45 minutes</span></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="alert alert-info mt-3 mb-0"><i class="bi bi-robot me-2"></i><b>AI Summary:</b> Candidate shows strong alignment with backend requirements. Recommend a technical round focused on system design and database optimization.</div>
+            </div>
+            <div class="tab-pane fade" id="tab-notes">
+              <label class="form-label small text-muted">Internal HR Notes</label>
+              <textarea class="form-control mb-3" rows="5" placeholder="Add notes about this candidate..."></textarea>
+              <button class="btn btn-primary bg-brand border-0"><i class="bi bi-save me-1"></i>Save Notes</button>
+            </div>
+            <div class="tab-pane fade" id="tab-timeline">
+              <div class="timeline">
+                <div class="timeline-item"><span class="timeline-dot bg-brand"><i class="bi bi-check"></i></span><div class="fw-semibold small">Application Submitted</div><div class="text-muted small">Jul 02, 2026</div></div>
+                <div class="timeline-item"><span class="timeline-dot bg-brand"><i class="bi bi-check"></i></span><div class="fw-semibold small">Resume Uploaded</div><div class="text-muted small">Jul 02, 2026</div></div>
+                <div class="timeline-item"><span class="timeline-dot bg-brand"><i class="bi bi-check"></i></span><div class="fw-semibold small">AI Screening Completed</div><div class="text-muted small">Jul 03, 2026</div></div>
+                <div class="timeline-item"><span class="timeline-dot bg-brand"><i class="bi bi-check"></i></span><div class="fw-semibold small">Shortlisted</div><div class="text-muted small">Jul 04, 2026</div></div>
+                <div class="timeline-item"><span class="timeline-dot bg-secondary"><i class="bi bi-clock"></i></span><div class="fw-semibold small text-muted">Interview Scheduled</div><div class="text-muted small">Pending</div></div>
+                <div class="timeline-item"><span class="timeline-dot bg-secondary"><i class="bi bi-clock"></i></span><div class="fw-semibold small text-muted">Interview Completed</div><div class="text-muted small">Pending</div></div>
+                <div class="timeline-item"><span class="timeline-dot bg-secondary"><i class="bi bi-clock"></i></span><div class="fw-semibold small text-muted">Selected</div><div class="text-muted small">Pending</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+          <button class="btn btn-primary bg-brand border-0"><i class="bi bi-pencil me-1"></i>Edit Candidate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addCandidateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="bi bi-person-plus me-2 text-brand"></i>Add Candidate</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form class="row g-3">
+            <div class="col-md-6"><label class="form-label">Full Name</label><input type="text" class="form-control" placeholder="e.g. Aarav Sharma" /></div>
+            <div class="col-md-6"><label class="form-label">Email</label><input type="email" class="form-control" placeholder="name@email.com" /></div>
+            <div class="col-md-6"><label class="form-label">Phone Number</label><input type="text" class="form-control" placeholder="+977-9XX-XXX-XXX" /></div>
+            <div class="col-md-6">
+              <label class="form-label">Applied Position</label>
+              <select class="form-select">
+                <option>Backend Developer</option>
+                <option>Frontend Developer</option>
+                <option>Data Scientist</option>
+                <option>ML Engineer</option>
+                <option>UI/UX Designer</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Upload Resume</label>
+              <input type="file" class="form-control" />
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary bg-brand border-0"><i class="bi bi-check2 me-1"></i>Save Candidate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const sidebar = document.getElementById('sidebar');
+      const toggle = document.getElementById('toggleSidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+
+      function closeSidebar() {
+        sidebar.classList.remove('show');
+        sidebar.classList.remove('collapsed');
+        backdrop.classList.remove('show');
+        document.body.classList.remove('sidebar-open');
+        document.body.classList.remove('sidebar-collapsed');
+      }
+
+      function openSidebar() {
+        sidebar.classList.add('show');
+        backdrop.classList.add('show');
+        document.body.classList.add('sidebar-open');
+      }
+
+      if (toggle) {
+        toggle.addEventListener('click', function () {
+          if (window.innerWidth >= 992) {
+            const shouldCollapse = !document.body.classList.contains('sidebar-collapsed');
+            document.body.classList.toggle('sidebar-collapsed', shouldCollapse);
+            sidebar.classList.toggle('collapsed', shouldCollapse);
+            if (shouldCollapse) {
+              sidebar.classList.remove('show');
+              backdrop.classList.remove('show');
+              document.body.classList.remove('sidebar-open');
+            } else {
+              sidebar.classList.add('show');
+              backdrop.classList.add('show');
+              document.body.classList.add('sidebar-open');
+            }
+          } else {
+            if (sidebar.classList.contains('show')) {
+              closeSidebar();
+            } else {
+              openSidebar();
+            }
+          }
+        });
+      }
+
+      if (backdrop) {
+        backdrop.addEventListener('click', closeSidebar);
+      }
+
+      document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+        new bootstrap.Tooltip(el);
+      });
+
+      const brandBlue = '#0d5cd7';
+      const palette = ['#0d5cd7', '#3f8efc', '#7fb2ff', '#a9c9ff', '#0a3fa0', '#c9dcff'];
+
+      if (document.getElementById('chartScoreDist')) {
+        new Chart(document.getElementById('chartScoreDist'), {
+          type: 'bar',
+          data: {
+            labels: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+            datasets: [{ label: 'Candidates', data: [8, 22, 46, 98, 76], backgroundColor: brandBlue, borderRadius: 6 }]
+          },
+          options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+      }
+
+      if (document.getElementById('chartStatusDist')) {
+        new Chart(document.getElementById('chartStatusDist'), {
+          type: 'doughnut',
+          data: {
+            labels: ['Pending', 'Shortlisted', 'Interview', 'Selected', 'Rejected'],
+            datasets: [{ data: [88, 64, 37, 14, 61], backgroundColor: palette }]
+          },
+          options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+        });
+      }
+
+      if (document.getElementById('chartByPosition')) {
+        new Chart(document.getElementById('chartByPosition'), {
+          type: 'bar',
+          data: {
+            labels: ['Backend', 'Frontend', 'Data Sci.', 'ML Eng.', 'UI/UX'],
+            datasets: [{ label: 'Candidates', data: [72, 58, 44, 38, 38], backgroundColor: '#3f8efc', borderRadius: 6 }]
+          },
+          options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+        });
+      }
+
+      if (document.getElementById('chartExperience')) {
+        new Chart(document.getElementById('chartExperience'), {
+          type: 'pie',
+          data: {
+            labels: ['0-1 Yrs', '1-3 Yrs', '3-5 Yrs', '5+ Yrs'],
+            datasets: [{ data: [60, 95, 62, 33], backgroundColor: palette }]
+          },
+          options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+        });
+      }
+
+      if (document.getElementById('chartEducation')) {
+        new Chart(document.getElementById('chartEducation'), {
+          type: 'bar',
+          data: {
+            labels: ["Bachelor's", "Master's", 'PhD', 'Other'],
+            datasets: [{ label: 'Candidates', data: [140, 84, 12, 14], backgroundColor: '#0a3fa0', borderRadius: 6 }]
+          },
+          options: { plugins: { legend: { display: false } } }
+        });
+      }
+
+      if (document.getElementById('chartMonthly')) {
+        new Chart(document.getElementById('chartMonthly'), {
+          type: 'line',
+          data: {
+            labels: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+            datasets: [{ label: 'Applications', data: [28, 35, 40, 52, 61, 34], borderColor: brandBlue, backgroundColor: 'rgba(13,92,215,0.1)', fill: true, tension: 0.35 }]
+          },
+          options: { plugins: { legend: { display: false } } }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

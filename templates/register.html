@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration</title>
+
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+
+    <style>
+        .btn-purple{
+            background:#5a43f1;
+            border-color:#5a43f1;
+            color:#fff;
+        }
+
+        .btn-purple:hover{
+            background:#4633c7;
+            border-color:#4633c7;
+            color:#fff;
+        }
+
+        .text-purple{
+            color:#5a43f1;
+        }
+    </style>
+
+</head>
+
+<body class="bg-light d-flex justify-content-center align-items-center min-vh-100">
+
+<div class="card shadow border-0 p-4" style="width:500px;border-radius:12px;">
+
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+            ← Back to Home
+        </a>
+    </div>
+
+    <h1 class="text-center mb-2">Create Account</h1>
+
+    <p class="text-center text-secondary mb-4">
+        Register to get started
+    </p>
+
+    <form action="{{ url_for('register') }}" method="POST">
+
+        <!-- First Name -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                First Name <span class="text-danger">*</span>
+            </label>
+
+            <input type="text"
+                   name="first_name"
+                   class="form-control"
+                   placeholder="Enter your first name"
+                   required>
+        </div>
+
+        <!-- Middle Name -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                Middle Name
+            </label>
+
+            <input type="text"
+                   name="middle_name"
+                   class="form-control"
+                   placeholder="Enter your middle name">
+        </div>
+
+        <!-- Last Name -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                Last Name <span class="text-danger">*</span>
+            </label>
+
+            <input type="text"
+                   name="last_name"
+                   class="form-control"
+                   placeholder="Enter your last name"
+                   required>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                Email Address <span class="text-danger">*</span>
+            </label>
+
+            <input type="email"
+                   name="email"
+                   class="form-control"
+                   placeholder="Enter your email"
+                   required>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                Password <span class="text-danger">*</span>
+            </label>
+
+            <input type="password"
+                   name="password"
+                   class="form-control"
+                   placeholder="Enter your password"
+                   required>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="mb-4">
+            <label class="form-label fw-bold">
+                Confirm Password <span class="text-danger">*</span>
+            </label>
+
+            <input type="password"
+                   name="confirm_password"
+                   class="form-control"
+                   placeholder="Confirm your password"
+                   required>
+        </div>
+
+        <!-- Register Button -->
+        <button type="submit" class="btn btn-purple w-100">
+            Register
+        </button>
+
+    </form>
+
+    <p class="text-center mt-4 mb-0">
+        Already have an account?
+
+        <a href="{{ url_for('login') }}"
+           class="text-decoration-none fw-bold text-purple">
+            Login here
+        </a>
+    </p>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+
+</body>
+</html>

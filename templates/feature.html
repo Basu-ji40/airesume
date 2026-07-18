@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>HYRIZON AI Resume System</title>
+
+    <link href="{{url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet">
+
+    <link href="{{url_for('static',filename='css/bootstrap.icon.css')}}" rel="stylesheet">
+
+    <style>
+        .navbar-brand img {
+            width: 45px;
+            height: 45px;
+            margin-right: 10px;
+        }
+
+        .app-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            margin-right: 10px;
+        }
+
+        .btn-login {
+            margin-right: 10px;
+        }
+
+        .stats-card {
+            transition: .3s;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, .15);
+        }
+
+        .stat-icon {
+            font-size: 45px;
+            color: #4F46E5;
+        }
+
+        /* Carousel */
+        .carousel {
+            max-width: 1600px;
+            margin: auto;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, .18);
+        }
+
+        /* Images */
+        .carousel-item img {
+            width: 100%;
+            height: 500px;
+            object-fit: contain;
+        }
+
+        /* Controls */
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            background-color: rgba(0, 0, 0, .4);
+            border-radius: 50%;
+            padding: 18px;
+        }
+
+        /* Indicators */
+        .carousel-indicators [data-bs-target] {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* css code for buttom pannel   
+        .stats-section{
+    background:#ffffff;
+    border-radius:25px;
+    padding:35px 25px;
+    box-shadow:0 10px 35px rgba(0,0,0,0.08);
+}
+
+
+.stat-item{
+    position:relative;
+    text-align:center;
+    padding:15px;
+}
+
+
+.stat-icon{
+    width:65px;
+    height:65px;
+    margin:auto;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:32px; 
+
+     color outside effect 
+    box-shadow:0 0 25px rgba(79,70,229,0.35);
+
+
+
+.icon1{
+    color:#4f46e5;
+    background:#eef2ff;
+}
+
+
+.icon2{
+    color:#10b981;
+    background:#ecfdf5;
+    box-shadow:0 0 25px rgba(16,185,129,.35);
+}
+
+
+.icon3{
+    color:#3b82f6;
+    background:#eff6ff;
+    box-shadow:0 0 25px rgba(59,130,246,.35);
+}
+
+
+.icon4{
+    color:#f59e0b;
+    background:#fffbeb;
+    box-shadow:0 0 25px rgba(245,158,11,.35);
+}
+
+
+.number{
+    font-size:30px;
+    font-weight:700;
+    margin-top:12px;
+}
+
+
+.title{
+    color:#555;
+    margin-top:5px;
+} */
+    </style>
+
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg bg-light shadow">
+        <div class="container ">
+
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{{ url_for('static', filename='images/logo1.jpeg')}}">
+                <span class="app-name">HYRIZON</span>
+            </a>
+
+
+
+            <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link " href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/feature">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
+                </ul>
+
+                 <div>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary px-4">
+                        Login
+                    </a>
+
+                    <a href="{{ url_for('register') }}" class="btn btn-primary px-4">
+                        Registration
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section py-4">
+        <div class="container">
+
+            <div id="aiCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="4000">
+
+                <!-- Indicators -->
+                   <div class="carousel-indicators">
+                <button type="button" data-bs-target="#aiCarousel" data-bs-slide-to="0" class="active"></button>
+                <button type="button" data-bs-target="#aiCarousel" data-bs-slide-to="1"></button>
+                <button type="button" data-bs-target="#aiCarousel" data-bs-slide-to="2"></button>
+                <button type="button" data-bs-target="#aiCarousel" data-bs-slide-to="3"></button>
+                <button type="button" data-bs-target="#aiCarousel" data-bs-slide-to="4"></button>
+                <button type="button" data-bs-target="#aiCarousel" data-bs-slide-to="5"></button>
+            </div>
+
+                <!-- Carousel Images -->
+                 
+                <div class="carousel-inner rounded shadow">
+
+                    <!-- First Image -->
+                    <div class="carousel-item active">
+                        <img src="{{ url_for('static', filename='images/feature11.png') }}" class="d-block w-100"
+                            alt="Image 1" style="height:500px; object-fit:contain;">
+                    </div>
+
+                    <!-- Second Image -->
+                    <div class="carousel-item">
+                        <img src="{{ url_for('static', filename='images/feature22.png') }}" class="d-block w-100"
+                            alt="Image 2" style="height:500px; object-fit:contain;">
+                    </div>
+
+                    <div class="carousel-item">
+                        <img src="{{ url_for('static', filename='images/feature33.png') }}" class="d-block w-100"
+                            alt="Image 3" style="height:500px; object-fit:contain;">
+                    </div>
+
+                    <div class="carousel-item">
+                        <img src="{{ url_for('static', filename='images/feature44.png') }}" class="d-block w-100"
+                            alt="Image 4" style="height:500px; object-fit:contain;">
+                    </div>
+
+                    <div class="carousel-item">
+                        <img src="{{ url_for('static', filename='images/feature55.png') }}" class="d-block w-100"
+                            alt="Image 5" style="height:500px; object-fit:contain;">
+                    </div>
+
+                    <div class="carousel-item">
+                        <img src="{{ url_for('static', filename='images/feature66.png') }}" class="d-block w-100"
+                            alt="Image 6" style="height:500px; object-fit:contain;">
+                    </div>
+                    
+
+                </div>
+
+                <!-- Previous Button -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#aiCarousel" data-bs-slide="prev">
+
+                    <span class="carousel-control-prev-icon"></span>
+
+                </button>
+
+                <!-- Next Button -->
+                <button class="carousel-control-next" type="button" data-bs-target="#aiCarousel" data-bs-slide="next">
+
+                    <span class="carousel-control-next-icon"></span>
+
+                </button>
+
+            </div>
+
+        </div>
+    </section>
+
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+
+</body>
+
+</html>
